@@ -2,6 +2,8 @@
 name = "syn-utils"
 version = "0.1.0"
 edition = "2024"
+description = "Utilities for syn parsing."
+repository = "https://github.com/Rick-Phoenix/syn-utils"
 keywords = ["syn", "utilities"]
 license = "MPL-2.0"
 readme = true
