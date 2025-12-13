@@ -77,13 +77,15 @@ impl ToTokens for CallOrClosure {
   }
 }
 
-pub struct PunctuatedParser<T: Parse> {
-  pub inner: Punctuated<T, Token![,]>,
+pub struct PunctuatedItems<T: Parse> {
+  pub inner: Vec<T>,
 }
 
-impl<T: Parse> Parse for PunctuatedParser<T> {
+impl<T: Parse> Parse for PunctuatedItems<T> {
   fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-    let inner = Punctuated::parse_terminated(input)?;
+    let inner = Punctuated::<T, Token![,]>::parse_terminated(input)?
+      .into_iter()
+      .collect();
 
     Ok(Self { inner })
   }
