@@ -1,0 +1,49 @@
+**/target/*
+expanded.rs
+
+# Caches
+.task
+.cache 
+.moon/cache
+.moon/docker
+
+# Output
+out
+*.js.map
+*.d.ts 
+*.tsbuildInfo
+.output
+.vercel
+.netlify
+.wrangler
+.svelte-kit
+dist
+build/**
+
+# Env
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Temporary Files
+*.tmp
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+
+# Operating System Generated Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Test Reports & Coverage
+coverage/
+lcov-report/
+*.lcov
+.nyc_output/
+
+
