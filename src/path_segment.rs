@@ -1,54 +1,74 @@
 use crate::*;
 
 pub trait PathSegmentExt {
-  fn first_generic(&self) -> Option<GenericArgument> {
-    self
-      .generic_args()
-      .and_then(|args| args.first().cloned())
-  }
-  fn first_two_generics(&self) -> Option<(GenericArgument, GenericArgument)> {
-    self.generic_args().map(|args| {
-      (
-        args.first().cloned().unwrap(),
-        args.get(1).cloned().unwrap(),
-      )
-    })
-  }
-  fn generic_args(&self) -> Option<Vec<GenericArgument>>;
-  fn generic_args_mut(&mut self) -> Option<IterMut<'_, GenericArgument>>;
-  fn parenthesized_args(&self) -> Option<&ParenthesizedGenericArguments>;
-  fn parenthesized_args_mut(&mut self) -> Option<&mut ParenthesizedGenericArguments>;
+  fn first_generic(&self) -> Option<&GenericArgument>;
+  fn first_generic_mut(&mut self) -> Option<&mut GenericArgument>;
+  fn last_generic(&self) -> Option<&GenericArgument>;
+  fn last_generic_mut(&mut self) -> Option<&mut GenericArgument>;
+  fn first_two_generics(&self) -> Option<(&GenericArgument, &GenericArgument)>;
+  fn generic_args(&self) -> Option<Vec<&GenericArgument>>;
+  fn generic_args_mut(&mut self) -> Option<&mut Punctuated<GenericArgument, Token![,]>>;
 }
 
 impl PathSegmentExt for PathSegment {
-  fn parenthesized_args_mut(&mut self) -> Option<&mut ParenthesizedGenericArguments> {
-    match &mut self.arguments {
-      PathArguments::None => None,
-      PathArguments::AngleBracketed(_) => None,
-      PathArguments::Parenthesized(par) => Some(par),
-    }
-  }
-
-  fn parenthesized_args(&self) -> Option<&ParenthesizedGenericArguments> {
+  fn first_generic(&self) -> Option<&GenericArgument> {
     match &self.arguments {
       PathArguments::None => None,
-      PathArguments::AngleBracketed(_) => None,
-      PathArguments::Parenthesized(par) => Some(par),
-    }
-  }
-
-  fn generic_args_mut(&mut self) -> Option<IterMut<'_, GenericArgument>> {
-    match &mut self.arguments {
-      PathArguments::None => None,
-      PathArguments::AngleBracketed(ab) => Some(ab.args.iter_mut()),
+      PathArguments::AngleBracketed(args) => args.args.first(),
       PathArguments::Parenthesized(_) => None,
     }
   }
 
-  fn generic_args(&self) -> Option<Vec<GenericArgument>> {
+  fn first_generic_mut(&mut self) -> Option<&mut GenericArgument> {
+    match &mut self.arguments {
+      PathArguments::None => None,
+      PathArguments::AngleBracketed(args) => args.args.first_mut(),
+      PathArguments::Parenthesized(_) => None,
+    }
+  }
+
+  fn last_generic(&self) -> Option<&GenericArgument> {
     match &self.arguments {
       PathArguments::None => None,
-      PathArguments::AngleBracketed(ab) => Some(ab.args.clone().into_iter().collect()),
+      PathArguments::AngleBracketed(args) => args.args.last(),
+      PathArguments::Parenthesized(_) => None,
+    }
+  }
+
+  fn last_generic_mut(&mut self) -> Option<&mut GenericArgument> {
+    match &mut self.arguments {
+      PathArguments::None => None,
+      PathArguments::AngleBracketed(args) => args.args.last_mut(),
+      PathArguments::Parenthesized(_) => None,
+    }
+  }
+
+  fn first_two_generics(&self) -> Option<(&GenericArgument, &GenericArgument)> {
+    match &self.arguments {
+      PathArguments::None => None,
+      PathArguments::AngleBracketed(args) => {
+        if args.args.len() > 1 {
+          Some((args.args.first().unwrap(), args.args.get(1).unwrap()))
+        } else {
+          None
+        }
+      }
+      PathArguments::Parenthesized(_) => None,
+    }
+  }
+
+  fn generic_args_mut(&mut self) -> Option<&mut Punctuated<GenericArgument, Token![,]>> {
+    match &mut self.arguments {
+      PathArguments::None => None,
+      PathArguments::AngleBracketed(ab) => Some(&mut ab.args),
+      PathArguments::Parenthesized(_) => None,
+    }
+  }
+
+  fn generic_args(&self) -> Option<Vec<&GenericArgument>> {
+    match &self.arguments {
+      PathArguments::None => None,
+      PathArguments::AngleBracketed(ab) => Some(ab.args.iter().collect()),
       PathArguments::Parenthesized(_) => None,
     }
   }
