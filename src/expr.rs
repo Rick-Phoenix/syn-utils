@@ -8,7 +8,7 @@ pub trait ParseExpr {
     N: FromStr,
     N::Err: Display;
   fn parse_closure(&self) -> syn::Result<&ExprClosure>;
-  fn parse_call_or_closure(self) -> syn::Result<CallOrClosure>;
+  fn parse_call_or_closure(&self) -> syn::Result<CallOrClosure>;
   fn parse_call(&self) -> syn::Result<&ExprCall>;
 }
 
@@ -56,10 +56,10 @@ impl ParseExpr for Expr {
     }
   }
 
-  fn parse_call_or_closure(self) -> syn::Result<CallOrClosure> {
+  fn parse_call_or_closure(&self) -> syn::Result<CallOrClosure> {
     match self {
-      Expr::Closure(closure) => Ok(CallOrClosure::Closure(closure)),
-      Expr::Call(call) => Ok(CallOrClosure::Call(call)),
+      Expr::Closure(closure) => Ok(CallOrClosure::Closure(closure.clone())),
+      Expr::Call(call) => Ok(CallOrClosure::Call(call.clone())),
       _ => Err(error!(self, "Expected a path or a closure")),
     }
   }
