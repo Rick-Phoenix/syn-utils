@@ -14,10 +14,20 @@ pub fn filter_attributes(attrs: &[Attribute], allowed_idents: &[&str]) -> syn::R
       continue;
     }
 
-    let parser = Punctuated::<Meta, Token![,]>::parse_terminated;
-    let args = attr.parse_args_with(parser)?;
+    let parser = |input: ParseStream| -> syn::Result<()> {
+      while !input.is_empty() {
+        let meta: Meta = input.parse()?;
+        metas.push(meta);
 
-    metas.extend(args);
+        if input.is_empty() {
+          break;
+        }
+        let _: Token![,] = input.parse()?;
+      }
+      Ok(())
+    };
+
+    attr.parse_args_with(parser)?;
   }
 
   Ok(metas)

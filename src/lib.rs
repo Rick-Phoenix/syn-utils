@@ -27,13 +27,13 @@ pub use path_segment::*;
 use proc_macro2::{Span, TokenStream as TokenStream2};
 use quote::{quote, ToTokens};
 use syn::{
-  parse::Parse,
+  parse::{Parse, ParseStream},
   parse_quote,
   punctuated::{Iter, IterMut, Punctuated},
   spanned::Spanned,
   Attribute, Expr, ExprCall, ExprClosure, Field, Fields, GenericArgument, Ident, Lifetime, Lit,
-  LitInt, LitStr, Meta, ParenthesizedGenericArguments, Path, PathArguments, PathSegment, Token,
-  Type, TypeArray, TypePath, Variant,
+  LitInt, LitStr, Meta, Path, PathArguments, PathSegment, Token, Type, TypeArray, TypePath,
+  Variant,
 };
 pub use type_ext::*;
 pub use type_parser::*;

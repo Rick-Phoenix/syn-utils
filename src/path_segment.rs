@@ -6,7 +6,7 @@ pub trait PathSegmentExt {
   fn last_generic(&self) -> Option<&GenericArgument>;
   fn last_generic_mut(&mut self) -> Option<&mut GenericArgument>;
   fn first_two_generics(&self) -> Option<(&GenericArgument, &GenericArgument)>;
-  fn generic_args(&self) -> Option<Vec<&GenericArgument>>;
+  fn generic_args(&self) -> Option<&Punctuated<GenericArgument, Token![,]>>;
   fn generic_args_mut(&mut self) -> Option<&mut Punctuated<GenericArgument, Token![,]>>;
 }
 
@@ -65,10 +65,10 @@ impl PathSegmentExt for PathSegment {
     }
   }
 
-  fn generic_args(&self) -> Option<Vec<&GenericArgument>> {
+  fn generic_args(&self) -> Option<&Punctuated<GenericArgument, Token![,]>> {
     match &self.arguments {
       PathArguments::None => None,
-      PathArguments::AngleBracketed(ab) => Some(ab.args.iter().collect()),
+      PathArguments::AngleBracketed(ab) => Some(&ab.args),
       PathArguments::Parenthesized(_) => None,
     }
   }

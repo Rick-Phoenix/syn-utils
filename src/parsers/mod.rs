@@ -1,3 +1,5 @@
+use syn::token::Comma;
+
 use crate::*;
 
 #[derive(Debug, Clone)]
@@ -21,11 +23,21 @@ pub struct PunctuatedItems<T: Parse> {
   pub inner: Vec<T>,
 }
 
+pub type PathsList = PunctuatedItems<Path>;
+pub type IdentsList = PunctuatedItems<Path>;
+
 impl<T: Parse> Parse for PunctuatedItems<T> {
   fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-    let inner = Punctuated::<T, Token![,]>::parse_terminated(input)?
-      .into_iter()
-      .collect();
+    let mut inner = Vec::new();
+
+    while !input.is_empty() {
+      inner.push(input.parse()?);
+
+      if input.is_empty() {
+        break;
+      }
+      let _comma: Comma = input.parse()?;
+    }
 
     Ok(Self { inner })
   }
@@ -37,12 +49,16 @@ pub struct StringList {
 
 impl Parse for StringList {
   fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-    let items = Punctuated::<LitStr, Token![,]>::parse_terminated(input)?;
+    let mut list: Vec<String> = Vec::new();
 
-    let list: Vec<String> = items
-      .into_iter()
-      .map(|lit_str| lit_str.value())
-      .collect();
+    while !input.is_empty() {
+      list.push(input.parse::<LitStr>()?.value());
+
+      if input.is_empty() {
+        break;
+      }
+      let _comma: Comma = input.parse()?;
+    }
 
     Ok(Self { list })
   }
@@ -54,12 +70,15 @@ pub struct NumList {
 
 impl Parse for NumList {
   fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-    let items = Punctuated::<LitInt, Token![,]>::parse_terminated(input)?;
-
     let mut list: Vec<i32> = Vec::new();
 
-    for item in items {
-      list.push(item.base10_parse()?);
+    while !input.is_empty() {
+      list.push(input.parse::<LitInt>()?.base10_parse()?);
+
+      if input.is_empty() {
+        break;
+      }
+      let _comma: Comma = input.parse()?;
     }
 
     Ok(Self { list })
