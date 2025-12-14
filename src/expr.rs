@@ -1,26 +1,26 @@
 use crate::*;
 
-pub trait ParseExpr {
-  fn parse_string(&self) -> syn::Result<String>;
-  fn parse_path(&self) -> syn::Result<&Path>;
-  fn parse_int<N>(&self) -> syn::Result<N>
+pub trait ExprExt {
+  fn as_string(&self) -> syn::Result<String>;
+  fn as_path(&self) -> syn::Result<&Path>;
+  fn as_int<N>(&self) -> syn::Result<N>
   where
     N: FromStr,
     N::Err: Display;
-  fn parse_closure(&self) -> syn::Result<&ExprClosure>;
-  fn parse_call_or_closure(&self) -> syn::Result<CallOrClosure>;
-  fn parse_call(&self) -> syn::Result<&ExprCall>;
+  fn as_closure(&self) -> syn::Result<&ExprClosure>;
+  fn as_call_or_closure(&self) -> syn::Result<CallOrClosure>;
+  fn as_call(&self) -> syn::Result<&ExprCall>;
 }
 
-impl ParseExpr for Expr {
-  fn parse_call(&self) -> syn::Result<&ExprCall> {
+impl ExprExt for Expr {
+  fn as_call(&self) -> syn::Result<&ExprCall> {
     if let Expr::Call(call) = self {
       Ok(call)
     } else {
       Err(error!(self, "Expected a function call"))
     }
   }
-  fn parse_string(&self) -> syn::Result<String> {
+  fn as_string(&self) -> syn::Result<String> {
     if let Expr::Lit(expr_lit) = self && let Lit::Str(value) = &expr_lit.lit {
       Ok(value.value())
     } else {
@@ -28,7 +28,7 @@ impl ParseExpr for Expr {
     }
   }
 
-  fn parse_path(&self) -> syn::Result<&Path> {
+  fn as_path(&self) -> syn::Result<&Path> {
     if let Expr::Path(expr_path) = self {
       Ok(&expr_path.path)
     } else {
@@ -36,7 +36,7 @@ impl ParseExpr for Expr {
     }
   }
 
-  fn parse_int<N>(&self) -> syn::Result<N>
+  fn as_int<N>(&self) -> syn::Result<N>
   where
     N: FromStr,
     N::Err: Display,
@@ -48,7 +48,7 @@ impl ParseExpr for Expr {
     }
   }
 
-  fn parse_closure(&self) -> syn::Result<&ExprClosure> {
+  fn as_closure(&self) -> syn::Result<&ExprClosure> {
     if let Expr::Closure(closure) = self {
       Ok(closure)
     } else {
@@ -56,7 +56,7 @@ impl ParseExpr for Expr {
     }
   }
 
-  fn parse_call_or_closure(&self) -> syn::Result<CallOrClosure> {
+  fn as_call_or_closure(&self) -> syn::Result<CallOrClosure> {
     match self {
       Expr::Closure(closure) => Ok(CallOrClosure::Closure(closure.clone())),
       Expr::Call(call) => Ok(CallOrClosure::Call(call.clone())),

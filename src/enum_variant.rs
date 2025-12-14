@@ -1,20 +1,20 @@
 use crate::*;
 
 pub trait EnumVariant {
-  fn is_single_tuple(&self) -> bool;
-  fn typ(&self) -> syn::Result<&Type>;
-  fn path(&self) -> syn::Result<&Path>;
-  fn type_mut(&mut self) -> syn::Result<&mut Type>;
-  fn path_mut(&mut self) -> syn::Result<&mut Path>;
+  fn has_single_item(&self) -> bool;
   fn is_unit(&self) -> bool;
-  fn named_fields(&self) -> syn::Result<Iter<'_, Field>>;
-  fn named_fields_mut(&mut self) -> syn::Result<IterMut<'_, Field>>;
-  fn unnamed_fields(&self) -> syn::Result<Iter<'_, Field>>;
-  fn unnamed_fields_mut(&mut self) -> syn::Result<IterMut<'_, Field>>;
+  fn typ(&self) -> syn::Result<&Type>;
+  fn type_mut(&mut self) -> syn::Result<&mut Type>;
+  fn type_path(&self) -> syn::Result<&Path>;
+  fn type_path_mut(&mut self) -> syn::Result<&mut Path>;
+  fn named_fields(&self) -> syn::Result<&Punctuated<Field, Token![,]>>;
+  fn named_fields_mut(&mut self) -> syn::Result<&mut Punctuated<Field, Token![,]>>;
+  fn unnamed_fields(&self) -> syn::Result<&Punctuated<Field, Token![,]>>;
+  fn unnamed_fields_mut(&mut self) -> syn::Result<&mut Punctuated<Field, Token![,]>>;
 }
 
 impl EnumVariant for Variant {
-  fn is_single_tuple(&self) -> bool {
+  fn has_single_item(&self) -> bool {
     if let Fields::Unnamed(fields) = &self.fields && fields.unnamed.len() == 1 {
       true
     } else {
@@ -22,7 +22,7 @@ impl EnumVariant for Variant {
     }
   }
 
-  fn path_mut(&mut self) -> syn::Result<&mut Path> {
+  fn type_path_mut(&mut self) -> syn::Result<&mut Path> {
     let span = self.span();
 
     if let Fields::Unnamed(fields) = &mut self.fields && fields.unnamed.len() == 1 {
@@ -42,7 +42,7 @@ impl EnumVariant for Variant {
     }
   }
 
-  fn path(&self) -> syn::Result<&Path> {
+  fn type_path(&self) -> syn::Result<&Path> {
     if let Fields::Unnamed(fields) = &self.fields && fields.unnamed.len() == 1 {
       Ok(fields.unnamed.last().unwrap().ty.as_path()?)
     } else {
@@ -62,37 +62,37 @@ impl EnumVariant for Variant {
     matches!(self.fields, Fields::Unit)
   }
 
-  fn named_fields(&self) -> syn::Result<Iter<'_, Field>> {
+  fn named_fields(&self) -> syn::Result<&Punctuated<Field, Token![,]>> {
     if let Fields::Named(fields) = &self.fields {
-      Ok(fields.named.iter())
+      Ok(&fields.named)
     } else {
       bail!(self, "Expected this variant to have named fields");
     }
   }
 
-  fn named_fields_mut(&mut self) -> syn::Result<IterMut<'_, Field>> {
+  fn named_fields_mut(&mut self) -> syn::Result<&mut Punctuated<Field, Token![,]>> {
     let span = self.span();
 
     if let Fields::Named(fields) = &mut self.fields {
-      Ok(fields.named.iter_mut())
+      Ok(&mut fields.named)
     } else {
       bail_with_span!(span, "Expected this variant to have named fields");
     }
   }
 
-  fn unnamed_fields(&self) -> syn::Result<Iter<'_, Field>> {
+  fn unnamed_fields(&self) -> syn::Result<&Punctuated<Field, token::Comma>> {
     if let Fields::Unnamed(fields) = &self.fields {
-      Ok(fields.unnamed.iter())
+      Ok(&fields.unnamed)
     } else {
       bail!(self, "Expected this variant to have unnamed fields");
     }
   }
 
-  fn unnamed_fields_mut(&mut self) -> syn::Result<IterMut<'_, Field>> {
+  fn unnamed_fields_mut(&mut self) -> syn::Result<&mut Punctuated<Field, Token![,]>> {
     let span = self.span();
 
     if let Fields::Unnamed(fields) = &mut self.fields {
-      Ok(fields.unnamed.iter_mut())
+      Ok(&mut fields.unnamed)
     } else {
       bail_with_span!(span, "Expected this variant to have unnamed fields");
     }

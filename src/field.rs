@@ -1,11 +1,11 @@
 use crate::*;
 
 pub trait AsNamedField {
-  fn ident(&self) -> syn::Result<&Ident>;
+  fn require_ident(&self) -> syn::Result<&Ident>;
 }
 
 impl AsNamedField for Field {
-  fn ident(&self) -> syn::Result<&Ident> {
+  fn require_ident(&self) -> syn::Result<&Ident> {
     self
       .ident
       .as_ref()
