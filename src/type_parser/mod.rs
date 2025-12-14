@@ -1,4 +1,7 @@
+mod primitives;
 use std::rc::Rc;
+
+pub use primitives::*;
 
 use crate::*;
 
@@ -47,10 +50,28 @@ pub enum RustType {
   Box(Rc<TypeInfo>),
   Vec(Rc<TypeInfo>),
   HashMap((Rc<TypeInfo>, Rc<TypeInfo>)),
+  String,
+  Int(Int),
+  Uint(Uint),
+  Float(Float),
+  Bool,
   Other(Rc<TypePath>),
 }
 
 impl RustType {
+  #[must_use]
+  pub fn is_num(&self) -> bool {
+    matches!(self, Self::Int(_) | Self::Float(_) | Self::Uint(_))
+  }
+
+  #[must_use]
+  pub fn is_primitive(&self) -> bool {
+    matches!(
+      self,
+      Self::Int(_) | Self::Float(_) | Self::Uint(_) | Self::Bool | Self::String
+    )
+  }
+
   /// Returns `true` if the rust type is [`Slice`].
   ///
   /// [`Slice`]: RustType::Slice
@@ -178,6 +199,46 @@ impl RustType {
       None
     }
   }
+
+  /// Returns `true` if the rust type is [`Bool`].
+  ///
+  /// [`Bool`]: RustType::Bool
+  #[must_use]
+  pub fn is_bool(&self) -> bool {
+    matches!(self, Self::Bool)
+  }
+
+  /// Returns `true` if the rust type is [`String`].
+  ///
+  /// [`String`]: RustType::String
+  #[must_use]
+  pub fn is_string(&self) -> bool {
+    matches!(self, Self::String)
+  }
+
+  /// Returns `true` if the rust type is [`Int`].
+  ///
+  /// [`Int`]: RustType::Int
+  #[must_use]
+  pub fn is_int(&self) -> bool {
+    matches!(self, Self::Int(..))
+  }
+
+  /// Returns `true` if the rust type is [`Uint`].
+  ///
+  /// [`Uint`]: RustType::Uint
+  #[must_use]
+  pub fn is_uint(&self) -> bool {
+    matches!(self, Self::Uint(..))
+  }
+
+  /// Returns `true` if the rust type is [`Float`].
+  ///
+  /// [`Float`]: RustType::Float
+  #[must_use]
+  pub fn is_float(&self) -> bool {
+    matches!(self, Self::Float(..))
+  }
 }
 
 impl ToTokens for TypeInfo {
@@ -194,6 +255,8 @@ impl ToTokens for TypeInfo {
 impl ToTokens for RustType {
   fn to_tokens(&self, tokens: &mut TokenStream2) {
     let output = match self {
+      RustType::Bool => quote! { bool },
+      RustType::String => quote! { String },
       RustType::Slice(ty) => quote! { [#ty] },
       RustType::Array(array) => {
         let Array { len, inner } = array.as_ref();
@@ -205,6 +268,9 @@ impl ToTokens for RustType {
       RustType::Vec(ty) => quote! { Vec<#ty> },
       RustType::HashMap((k, v)) => quote! { HashMap<#k, #v> },
       RustType::Other(path) => quote! { #path },
+      RustType::Int(int) => int.to_token_stream(),
+      RustType::Uint(uint) => uint.to_token_stream(),
+      RustType::Float(float) => float.to_token_stream(),
     };
 
     tokens.extend(output);
@@ -373,7 +439,7 @@ impl TypeInfo {
   /// [`Slice`]: RustType::Slice
   #[must_use]
   pub fn is_slice(&self) -> bool {
-    matches!(*self.type_, RustType::Slice(..))
+    self.type_.is_slice()
   }
 
   /// Returns `true` if the rust type is [`Array`].
@@ -381,7 +447,7 @@ impl TypeInfo {
   /// [`Array`]: RustType::Array
   #[must_use]
   pub fn is_array(&self) -> bool {
-    matches!(*self.type_, RustType::Array { .. })
+    self.type_.is_array()
   }
 
   /// Returns `true` if the rust type is [`Tuple`].
@@ -389,7 +455,7 @@ impl TypeInfo {
   /// [`Tuple`]: RustType::Tuple
   #[must_use]
   pub fn is_tuple(&self) -> bool {
-    matches!(*self.type_, RustType::Tuple(..))
+    self.type_.is_tuple()
   }
 
   /// Returns `true` if the rust type is [`Option`].
@@ -397,7 +463,7 @@ impl TypeInfo {
   /// [`Option`]: RustType::Option
   #[must_use]
   pub fn is_option(&self) -> bool {
-    matches!(*self.type_, RustType::Option(..))
+    self.type_.is_option()
   }
 
   /// Returns `true` if the rust type is [`Box`].
@@ -405,7 +471,7 @@ impl TypeInfo {
   /// [`Box`]: RustType::Box
   #[must_use]
   pub fn is_box(&self) -> bool {
-    matches!(*self.type_, RustType::Box(..))
+    self.type_.is_box()
   }
 
   /// Returns `true` if the rust type is [`Vec`].
@@ -413,7 +479,7 @@ impl TypeInfo {
   /// [`Vec`]: RustType::Vec
   #[must_use]
   pub fn is_vec(&self) -> bool {
-    matches!(*self.type_, RustType::Vec(..))
+    self.type_.is_vec()
   }
 
   /// Returns `true` if the rust type is [`HashMap`].
@@ -421,7 +487,7 @@ impl TypeInfo {
   /// [`HashMap`]: RustType::HashMap
   #[must_use]
   pub fn is_hash_map(&self) -> bool {
-    matches!(*self.type_, RustType::HashMap(..))
+    self.type_.is_hash_map()
   }
 
   /// Returns `true` if the rust type is [`Other`].
@@ -429,7 +495,57 @@ impl TypeInfo {
   /// [`Other`]: RustType::Other
   #[must_use]
   pub fn is_other(&self) -> bool {
-    matches!(*self.type_, RustType::Other(..))
+    self.type_.is_other()
+  }
+
+  /// Returns `true` if the rust type is [`Bool`].
+  ///
+  /// [`Bool`]: RustType::Bool
+  #[must_use]
+  pub fn is_bool(&self) -> bool {
+    self.type_.is_bool()
+  }
+
+  /// Returns `true` if the rust type is [`String`].
+  ///
+  /// [`String`]: RustType::String
+  #[must_use]
+  pub fn is_string(&self) -> bool {
+    self.type_.is_string()
+  }
+
+  /// Returns `true` if the rust type is [`Int`].
+  ///
+  /// [`Int`]: RustType::Int
+  #[must_use]
+  pub fn is_int(&self) -> bool {
+    self.type_.is_int()
+  }
+
+  /// Returns `true` if the rust type is [`Uint`].
+  ///
+  /// [`Uint`]: RustType::Uint
+  #[must_use]
+  pub fn is_uint(&self) -> bool {
+    self.type_.is_uint()
+  }
+
+  /// Returns `true` if the rust type is [`Float`].
+  ///
+  /// [`Float`]: RustType::Float
+  #[must_use]
+  pub fn is_float(&self) -> bool {
+    self.type_.is_float()
+  }
+
+  #[must_use]
+  pub fn is_num(&self) -> bool {
+    self.type_.is_num()
+  }
+
+  #[must_use]
+  pub fn is_primitive(&self) -> bool {
+    self.type_.is_primitive()
   }
 }
 
