@@ -218,6 +218,10 @@ impl From<TypeInfo> for Type {
 }
 
 impl TypeInfo {
+  pub fn as_type(&self) -> Type {
+    parse_quote!(#self)
+  }
+
   pub fn is_mut_ref(&self) -> bool {
     self
       .reference
@@ -362,6 +366,70 @@ impl TypeInfo {
     };
 
     Ok(output)
+  }
+
+  /// Returns `true` if the rust type is [`Slice`].
+  ///
+  /// [`Slice`]: RustType::Slice
+  #[must_use]
+  pub fn is_slice(&self) -> bool {
+    matches!(*self.type_, RustType::Slice(..))
+  }
+
+  /// Returns `true` if the rust type is [`Array`].
+  ///
+  /// [`Array`]: RustType::Array
+  #[must_use]
+  pub fn is_array(&self) -> bool {
+    matches!(*self.type_, RustType::Array { .. })
+  }
+
+  /// Returns `true` if the rust type is [`Tuple`].
+  ///
+  /// [`Tuple`]: RustType::Tuple
+  #[must_use]
+  pub fn is_tuple(&self) -> bool {
+    matches!(*self.type_, RustType::Tuple(..))
+  }
+
+  /// Returns `true` if the rust type is [`Option`].
+  ///
+  /// [`Option`]: RustType::Option
+  #[must_use]
+  pub fn is_option(&self) -> bool {
+    matches!(*self.type_, RustType::Option(..))
+  }
+
+  /// Returns `true` if the rust type is [`Box`].
+  ///
+  /// [`Box`]: RustType::Box
+  #[must_use]
+  pub fn is_box(&self) -> bool {
+    matches!(*self.type_, RustType::Box(..))
+  }
+
+  /// Returns `true` if the rust type is [`Vec`].
+  ///
+  /// [`Vec`]: RustType::Vec
+  #[must_use]
+  pub fn is_vec(&self) -> bool {
+    matches!(*self.type_, RustType::Vec(..))
+  }
+
+  /// Returns `true` if the rust type is [`HashMap`].
+  ///
+  /// [`HashMap`]: RustType::HashMap
+  #[must_use]
+  pub fn is_hash_map(&self) -> bool {
+    matches!(*self.type_, RustType::HashMap(..))
+  }
+
+  /// Returns `true` if the rust type is [`Other`].
+  ///
+  /// [`Other`]: RustType::Other
+  #[must_use]
+  pub fn is_other(&self) -> bool {
+    matches!(*self.type_, RustType::Other(..))
   }
 }
 
