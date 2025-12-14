@@ -1,6 +1,8 @@
+use std::rc::Rc;
+
 use crate::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Ref {
   pub lifetime: Option<Lifetime>,
   pub kind: RefKind,
@@ -18,28 +20,34 @@ impl ToTokens for Ref {
   }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct TypeInfo {
   pub reference: Option<Ref>,
-  pub type_: RustType,
+  pub type_: Rc<RustType>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum RefKind {
   Ref,
   MutRef,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Array {
+  pub len: Expr,
+  pub inner: Rc<TypeInfo>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum RustType {
-  Slice(Box<TypeInfo>),
-  Array { len: Expr, inner: Box<TypeInfo> },
-  Tuple(Vec<TypeInfo>),
-  Option(Box<TypeInfo>),
-  Box(Box<TypeInfo>),
-  Vec(Box<TypeInfo>),
-  HashMap((Box<TypeInfo>, Box<TypeInfo>)),
-  Other(TypePath),
+  Slice(Rc<TypeInfo>),
+  Array(Rc<Array>),
+  Tuple(Rc<[TypeInfo]>),
+  Option(Rc<TypeInfo>),
+  Box(Rc<TypeInfo>),
+  Vec(Rc<TypeInfo>),
+  HashMap((Rc<TypeInfo>, Rc<TypeInfo>)),
+  Other(Rc<TypePath>),
 }
 
 impl RustType {
@@ -114,6 +122,62 @@ impl RustType {
       None
     }
   }
+
+  pub fn as_slice(&self) -> Option<&TypeInfo> {
+    if let Self::Slice(v) = self {
+      Some(v)
+    } else {
+      None
+    }
+  }
+
+  pub fn as_tuple(&self) -> Option<&[TypeInfo]> {
+    if let Self::Tuple(v) = self {
+      Some(v.as_ref())
+    } else {
+      None
+    }
+  }
+
+  pub fn as_box(&self) -> Option<&TypeInfo> {
+    if let Self::Box(v) = self {
+      Some(v)
+    } else {
+      None
+    }
+  }
+
+  pub fn as_vec(&self) -> Option<&TypeInfo> {
+    if let Self::Vec(v) = self {
+      Some(v)
+    } else {
+      None
+    }
+  }
+
+  pub fn as_hash_map(&self) -> Option<&(Rc<TypeInfo>, Rc<TypeInfo>)> {
+    if let Self::HashMap(v) = self {
+      Some(v)
+    } else {
+      None
+    }
+  }
+
+  pub fn as_other(&self) -> Option<&TypePath> {
+    if let Self::Other(v) = self {
+      Some(v)
+    } else {
+      None
+    }
+  }
+
+  pub fn as_array(&self) -> Option<&Array> {
+    if let Self::Array(v) = self {
+      Some(v)
+    } else {
+      None
+    }
+  }
 }
 
 impl ToTokens for TypeInfo {
@@ -131,7 +195,10 @@ impl ToTokens for RustType {
   fn to_tokens(&self, tokens: &mut TokenStream2) {
     let output = match self {
       RustType::Slice(ty) => quote! { [#ty] },
-      RustType::Array { len, inner } => quote! { [#inner; #len] },
+      RustType::Array(array) => {
+        let Array { len, inner } = array.as_ref();
+        quote! { [#inner; #len] }
+      }
       RustType::Tuple(types) => quote! { (#(#types),*) },
       RustType::Option(ty) => quote! { ::core::option::Option<#ty> },
       RustType::Box(ty) => quote! { Box<#ty> },
@@ -151,6 +218,24 @@ impl From<TypeInfo> for Type {
 }
 
 impl TypeInfo {
+  pub fn is_mut_ref(&self) -> bool {
+    self
+      .reference
+      .as_ref()
+      .is_some_and(|r| matches!(r.kind, RefKind::MutRef))
+  }
+
+  pub fn is_ref(&self) -> bool {
+    self
+      .reference
+      .as_ref()
+      .is_some_and(|r| matches!(r.kind, RefKind::Ref))
+  }
+
+  pub fn is_owned(&self) -> bool {
+    self.reference.is_none()
+  }
+
   pub fn from_type(typ: &Type) -> syn::Result<Self> {
     if let Type::Reference(reference) = typ {
       let ownership = if reference.mutability.is_some() {
@@ -165,7 +250,7 @@ impl TypeInfo {
             lifetime: reference.lifetime.clone(),
             kind: ownership,
           }),
-          type_: RustType::Slice(Self::from_type(&slice.elem)?.into()),
+          type_: RustType::Slice(Self::from_type(&slice.elem)?.into()).into(),
         });
       } else {
         let mut ref_type = Self::from_type(&reference.elem)?;
@@ -184,7 +269,7 @@ impl TypeInfo {
 
         Self {
           reference: None,
-          type_: RustType::Slice(inner.into()),
+          type_: RustType::Slice(inner.into()).into(),
         }
       }
       Type::Array(TypeArray { elem, len, .. }) => {
@@ -192,10 +277,14 @@ impl TypeInfo {
 
         Self {
           reference: None,
-          type_: RustType::Array {
-            len: len.clone(),
-            inner: inner.into(),
-          },
+          type_: RustType::Array(
+            Array {
+              len: len.clone(),
+              inner: inner.into(),
+            }
+            .into(),
+          )
+          .into(),
         }
       }
       Type::Path(path) => {
@@ -212,7 +301,8 @@ impl TypeInfo {
               type_: RustType::HashMap((
                 Self::from_type(k.as_type()?)?.into(),
                 Self::from_type(v.as_type()?)?.into(),
-              )),
+              ))
+              .into(),
             }
           }
           "Box" => {
@@ -221,7 +311,7 @@ impl TypeInfo {
             Self {
               reference: None,
 
-              type_: RustType::Box(Self::from_type(inner.as_type()?)?.into()),
+              type_: RustType::Box(Self::from_type(inner.as_type()?)?.into()).into(),
             }
           }
           "Vec" => {
@@ -230,7 +320,7 @@ impl TypeInfo {
             Self {
               reference: None,
 
-              type_: RustType::Vec(Self::from_type(inner.as_type()?)?.into()),
+              type_: RustType::Vec(Self::from_type(inner.as_type()?)?.into()).into(),
             }
           }
           "Option" => {
@@ -239,26 +329,30 @@ impl TypeInfo {
             Self {
               reference: None,
 
-              type_: RustType::Option(Self::from_type(inner.as_type()?)?.into()),
+              type_: RustType::Option(Self::from_type(inner.as_type()?)?.into()).into(),
             }
           }
           _ => Self {
             reference: None,
 
-            type_: RustType::Other(path.clone()),
+            type_: RustType::Other(path.clone().into()).into(),
           },
         }
       }
-      Type::Tuple(tuple) => Self {
-        reference: None,
-        type_: RustType::Tuple(
-          tuple
-            .elems
-            .iter()
-            .map(|t| Self::from_type(t).unwrap())
-            .collect(),
-        ),
-      },
+      Type::Tuple(tuple) => {
+        let types: Vec<Self> = tuple
+          .elems
+          .iter()
+          .map(Self::from_type)
+          .collect::<syn::Result<Vec<Self>>>()?;
+
+        let type_enum = RustType::Tuple(types.into());
+
+        Self {
+          reference: None,
+          type_: type_enum.into(),
+        }
+      }
 
       _ => bail!(
         typ,
@@ -300,7 +394,7 @@ mod tests {
     let original: Type = syn::parse_str(ty).unwrap();
     let info = TypeInfo::from_type(&original).unwrap();
 
-    if let RustType::Option(_) = info.type_ {
+    if let RustType::Option(_) = *info.type_ {
       // OK
     } else {
       panic!("Expected Option, got {:?}", info.type_);
@@ -365,8 +459,8 @@ mod tests {
   fn test_wrappers_option() {
     let info = get_info("Option<i32>");
 
-    if let RustType::Option(inner) = info.type_ {
-      assert_inner_eq(&inner, "i32");
+    if let RustType::Option(inner) = &*info.type_ {
+      assert_inner_eq(inner, "i32");
     } else {
       panic!("Failed to parse Option. Got different variant.");
     }
@@ -376,8 +470,8 @@ mod tests {
   fn test_wrappers_vec() {
     let info = get_info("Vec<String>");
 
-    if let RustType::Vec(inner) = info.type_ {
-      assert_inner_eq(&inner, "String");
+    if let RustType::Vec(inner) = &*info.type_ {
+      assert_inner_eq(inner, "String");
     } else {
       panic!("Failed to parse Vec.");
     }
@@ -387,8 +481,8 @@ mod tests {
   fn test_wrappers_box() {
     let info = get_info("Box<MyStruct>");
 
-    if let RustType::Box(inner) = info.type_ {
-      assert_inner_eq(&inner, "MyStruct");
+    if let RustType::Box(inner) = &*info.type_ {
+      assert_inner_eq(inner, "MyStruct");
     } else {
       panic!("Failed to parse Box.");
     }
@@ -398,9 +492,9 @@ mod tests {
   fn test_hashmap() {
     let info = get_info("HashMap<String, i32>");
 
-    if let RustType::HashMap((k, v)) = info.type_ {
-      assert_inner_eq(&k, "String");
-      assert_inner_eq(&v, "i32");
+    if let RustType::HashMap((k, v)) = &*info.type_ {
+      assert_inner_eq(k, "String");
+      assert_inner_eq(v, "i32");
     } else {
       panic!("Failed to parse HashMap. Got type {:#?}", info.type_);
     }
@@ -410,8 +504,8 @@ mod tests {
   fn test_slice() {
     let info = get_info("[u8]");
 
-    if let RustType::Slice(inner) = info.type_ {
-      assert_inner_eq(&inner, "u8");
+    if let RustType::Slice(inner) = &*info.type_ {
+      assert_inner_eq(inner, "u8");
     } else {
       panic!("Failed to parse Slice.");
     }
@@ -421,8 +515,9 @@ mod tests {
   fn test_array() {
     let info = get_info("[u8; 4]");
 
-    if let RustType::Array { len, inner } = info.type_ {
-      assert_inner_eq(&inner, "u8");
+    if let RustType::Array(array) = &*info.type_ {
+      let Array { len, inner } = array.as_ref();
+      assert_inner_eq(inner, "u8");
       let len_str = quote!(#len).to_string();
       assert_eq!(len_str, "4");
     } else {
@@ -434,7 +529,7 @@ mod tests {
   fn test_tuple() {
     let info = get_info("(i32, bool, String)");
 
-    if let RustType::Tuple(items) = info.type_ {
+    if let RustType::Tuple(items) = &*info.type_ {
       assert_eq!(items.len(), 3);
       assert_inner_eq(&items[0], "i32");
       assert_inner_eq(&items[1], "bool");
@@ -448,10 +543,10 @@ mod tests {
   fn test_nested_wrappers() {
     let info = get_info("Option<Vec<Box<i32>>>");
 
-    if let RustType::Option(l1) = info.type_
-      && let RustType::Vec(l2) = l1.type_
-        && let RustType::Box(l3) = l2.type_ {
-          assert_inner_eq(&l3, "i32");
+    if let RustType::Option(l1) = &*info.type_
+      && let RustType::Vec(l2) = &*l1.type_
+        && let RustType::Box(l3) = &*l2.type_ {
+          assert_inner_eq(l3, "i32");
           return;
         }
     panic!("Failed to parse deeply nested wrappers");
@@ -469,7 +564,7 @@ mod tests {
       _ => panic!("Expected MutRef"),
     }
 
-    if let RustType::Other(path) = info.type_ {
+    if let RustType::Other(path) = &*info.type_ {
       let path_str = quote!(#path).to_string();
       assert_eq!(path_str, "String");
     } else {
@@ -492,7 +587,7 @@ mod tests {
   fn test_other_path() {
     let info = get_info("my_crate::MyType");
 
-    if let RustType::Other(path) = info.type_ {
+    if let RustType::Other(path) = &*info.type_ {
       let s = quote::quote!(#path).to_string().replace(" ", "");
       assert_eq!(s, "my_crate::MyType");
     } else {

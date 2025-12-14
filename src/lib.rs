@@ -29,10 +29,10 @@ use quote::{quote, ToTokens};
 use syn::{
   parse::{Parse, ParseStream},
   parse_quote,
-  punctuated::{Iter, IterMut, Punctuated},
+  punctuated::Punctuated,
   spanned::Spanned,
-  Attribute, Expr, ExprCall, ExprClosure, Field, Fields, GenericArgument, Ident, Lifetime, Lit,
-  LitInt, LitStr, Meta, Path, PathArguments, PathSegment, Token, Type, TypeArray, TypePath,
+  token, Attribute, Expr, ExprCall, ExprClosure, Field, Fields, GenericArgument, Ident, Lifetime,
+  Lit, LitInt, LitStr, Meta, Path, PathArguments, PathSegment, Token, Type, TypeArray, TypePath,
   Variant,
 };
 pub use type_ext::*;
