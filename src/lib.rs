@@ -8,7 +8,7 @@ mod path;
 mod path_segment;
 mod type_ext;
 mod type_parser;
-use std::{fmt::Display, str::FromStr};
+use std::{fmt::Display, rc::Rc, str::FromStr};
 
 pub use parsers::*;
 
