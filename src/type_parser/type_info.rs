@@ -65,6 +65,12 @@ impl TypeInfo {
     self.type_.as_path()
   }
 
+  pub fn require_path(&self) -> syn::Result<Path> {
+    self
+      .as_path()
+      .ok_or(error!(self, "Expected a type path"))
+  }
+
   pub fn as_type(&self) -> Type {
     parse_quote_spanned! {self.span=>
       #self
