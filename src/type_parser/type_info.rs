@@ -1,17 +1,36 @@
+use std::hash::{Hash, Hasher};
+
 use crate::*;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone)]
 pub struct TypeInfo {
   pub reference: Option<Ref>,
   pub type_: Rc<RustType>,
+  pub(crate) span: Span,
+}
+
+impl PartialEq for TypeInfo {
+  fn eq(&self, other: &Self) -> bool {
+    self.reference == other.reference && self.type_ == other.type_
+  }
+}
+
+impl Eq for TypeInfo {}
+
+impl Hash for TypeInfo {
+  fn hash<H: Hasher>(&self, state: &mut H) {
+    self.reference.hash(state);
+    self.type_.hash(state);
+  }
 }
 
 impl ToTokens for TypeInfo {
   fn to_tokens(&self, tokens: &mut TokenStream2) {
     let ref_tokens = &self.reference;
     let type_tokens = &self.type_;
+    let span = self.span;
 
-    tokens.extend(quote! {
+    tokens.extend(quote_spanned! {span=>
       #ref_tokens #type_tokens
     });
   }
@@ -19,7 +38,7 @@ impl ToTokens for TypeInfo {
 
 impl From<TypeInfo> for Type {
   fn from(value: TypeInfo) -> Self {
-    parse_quote!(#value)
+    value.as_type()
   }
 }
 
@@ -47,7 +66,9 @@ impl TypeInfo {
   }
 
   pub fn as_type(&self) -> Type {
-    parse_quote!(#self)
+    parse_quote_spanned! {self.span=>
+      #self
+    }
   }
 
   pub fn is_mut_ref(&self) -> bool {
@@ -69,27 +90,27 @@ impl TypeInfo {
   }
 
   pub fn from_type(typ: &Type) -> syn::Result<Self> {
-    if let Type::Reference(reference) = typ {
-      let ownership = if reference.mutability.is_some() {
+    if let Type::Reference(ty_reference) = typ {
+      let ref_kind = if ty_reference.mutability.is_some() {
         RefKind::MutRef
       } else {
         RefKind::Ref
       };
 
-      if let Type::Slice(slice) = &*reference.elem {
+      let reference = Some(Ref {
+        lifetime: ty_reference.lifetime.clone(),
+        kind: ref_kind,
+      });
+
+      if let Type::Slice(slice) = &*ty_reference.elem {
         return Ok(Self {
-          reference: Some(Ref {
-            lifetime: reference.lifetime.clone(),
-            kind: ownership,
-          }),
+          reference,
           type_: RustType::Slice(Self::from_type(&slice.elem)?.into()).into(),
+          span: typ.span(),
         });
       } else {
-        let mut ref_type = Self::from_type(&reference.elem)?;
-        ref_type.reference = Some(Ref {
-          lifetime: reference.lifetime.clone(),
-          kind: ownership,
-        });
+        let mut ref_type = Self::from_type(&ty_reference.elem)?;
+        ref_type.reference = reference;
 
         return Ok(ref_type);
       }
@@ -102,6 +123,7 @@ impl TypeInfo {
         Self {
           reference: None,
           type_: RustType::Slice(inner.into()).into(),
+          span: typ.span(),
         }
       }
       Type::Array(TypeArray { elem, len, .. }) => {
@@ -109,6 +131,7 @@ impl TypeInfo {
 
         Self {
           reference: None,
+          span: typ.span(),
           type_: RustType::Array(
             Array {
               len: len.clone(),
@@ -135,6 +158,7 @@ impl TypeInfo {
                 Self::from_type(v.as_type()?)?.into(),
               ))
               .into(),
+              span: typ.span(),
             }
           }
           "Box" => {
@@ -142,7 +166,7 @@ impl TypeInfo {
 
             Self {
               reference: None,
-
+              span: typ.span(),
               type_: RustType::Box(Self::from_type(inner.as_type()?)?.into()).into(),
             }
           }
@@ -151,7 +175,7 @@ impl TypeInfo {
 
             Self {
               reference: None,
-
+              span: typ.span(),
               type_: RustType::Vec(Self::from_type(inner.as_type()?)?.into()).into(),
             }
           }
@@ -160,13 +184,13 @@ impl TypeInfo {
 
             Self {
               reference: None,
-
+              span: typ.span(),
               type_: RustType::Option(Self::from_type(inner.as_type()?)?.into()).into(),
             }
           }
           _ => Self {
             reference: None,
-
+            span: typ.span(),
             type_: RustType::Other(path.clone().into()).into(),
           },
         }
@@ -182,6 +206,7 @@ impl TypeInfo {
 
         Self {
           reference: None,
+          span: typ.span(),
           type_: type_enum.into(),
         }
       }

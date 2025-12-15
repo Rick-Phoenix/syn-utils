@@ -25,10 +25,10 @@ pub use generic_args::*;
 pub use path::*;
 pub use path_segment::*;
 use proc_macro2::{Span, TokenStream as TokenStream2};
-use quote::{quote, ToTokens};
+use quote::{quote, quote_spanned, ToTokens};
 use syn::{
   parse::{Parse, ParseStream},
-  parse_quote,
+  parse_quote, parse_quote_spanned,
   punctuated::Punctuated,
   spanned::Spanned,
   token, Attribute, Expr, ExprCall, ExprClosure, Field, Fields, GenericArgument, Ident, Lifetime,
