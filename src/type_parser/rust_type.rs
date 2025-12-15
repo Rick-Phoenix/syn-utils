@@ -10,6 +10,7 @@ pub enum RustType {
   Vec(Rc<TypeInfo>),
   HashMap((Rc<TypeInfo>, Rc<TypeInfo>)),
   String,
+  Bytes,
   Int(Int),
   Uint(Uint),
   Float(Float),
@@ -20,6 +21,7 @@ pub enum RustType {
 impl ToTokens for RustType {
   fn to_tokens(&self, tokens: &mut TokenStream2) {
     let output = match self {
+      RustType::Bytes => quote! { Bytes },
       RustType::Bool => quote! { bool },
       RustType::String => quote! { String },
       RustType::Slice(ty) => quote! { [#ty] },

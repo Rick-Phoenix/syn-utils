@@ -36,6 +36,7 @@ fn test_primitives() {
   assert_round_trip("i32");
   assert_round_trip("String");
   assert_round_trip("bool");
+  assert_round_trip("Bytes");
 }
 
 #[test]

@@ -47,10 +47,10 @@ impl TypeInfo {
     match self.type_.as_ref() {
       RustType::Slice(ty) => ty,
       RustType::Array(array) => &array.inner,
-      RustType::Tuple(_) => self,
       RustType::Option(ty) => ty,
       RustType::Box(ty) => ty,
       RustType::Vec(ty) => ty,
+      RustType::Tuple(_) => self,
       RustType::HashMap(_) => self,
       RustType::String => self,
       RustType::Int(_) => self,
@@ -58,6 +58,7 @@ impl TypeInfo {
       RustType::Float(_) => self,
       RustType::Bool => self,
       RustType::Other(_) => self,
+      RustType::Bytes => self,
     }
   }
 
@@ -154,6 +155,11 @@ impl TypeInfo {
         let last_segment_ident = last_segment.ident.to_string();
 
         match last_segment_ident.as_str() {
+          "Bytes" => Self {
+            reference: None,
+            type_: RustType::Bytes.into(),
+            span: typ.span(),
+          },
           "HashMap" => {
             let (k, v) = last_segment.first_two_generics().unwrap();
 
