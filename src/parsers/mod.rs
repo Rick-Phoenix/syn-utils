@@ -37,7 +37,7 @@ pub struct PunctuatedItems<T: Parse + ToTokens> {
 }
 
 pub type PathList = PunctuatedItems<Path>;
-pub type IdentList = PunctuatedItems<Path>;
+pub type IdentList = PunctuatedItems<Ident>;
 
 impl<T: Parse + ToTokens> Parse for PunctuatedItems<T> {
   fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
