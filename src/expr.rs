@@ -58,8 +58,8 @@ impl ExprExt for Expr {
 
   fn as_call_or_closure(&self) -> syn::Result<CallOrClosure> {
     match self {
-      Expr::Closure(closure) => Ok(CallOrClosure::Closure(closure.clone())),
-      Expr::Call(call) => Ok(CallOrClosure::Call(call.clone())),
+      Expr::Closure(closure) => Ok(CallOrClosure::Closure(closure.to_token_stream())),
+      Expr::Call(call) => Ok(CallOrClosure::Call(call.to_token_stream())),
       _ => Err(error!(self, "Expected a path or a closure")),
     }
   }
