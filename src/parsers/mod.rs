@@ -36,8 +36,8 @@ pub struct PunctuatedItems<T: Parse + ToTokens> {
   pub inner: Vec<T>,
 }
 
-pub type PathsList = PunctuatedItems<Path>;
-pub type IdentsList = PunctuatedItems<Path>;
+pub type PathList = PunctuatedItems<Path>;
+pub type IdentList = PunctuatedItems<Path>;
 
 impl<T: Parse + ToTokens> Parse for PunctuatedItems<T> {
   fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
