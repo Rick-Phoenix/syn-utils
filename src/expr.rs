@@ -10,9 +10,18 @@ pub trait ExprExt {
   fn as_closure(&self) -> syn::Result<&ExprClosure>;
   fn as_call_or_closure(&self) -> syn::Result<CallOrClosure>;
   fn as_call(&self) -> syn::Result<&ExprCall>;
+  fn as_path_or_closure(&self) -> syn::Result<PathOrClosure>;
 }
 
 impl ExprExt for Expr {
+  fn as_path_or_closure(&self) -> syn::Result<PathOrClosure> {
+    match self {
+      Expr::Closure(closure) => Ok(PathOrClosure::Closure(closure.to_token_stream())),
+      Expr::Path(expr_path) => Ok(PathOrClosure::Path(expr_path.path.to_token_stream())),
+      _ => Err(error!(self, "Expected a path or a closure")),
+    }
+  }
+
   fn as_call(&self) -> syn::Result<&ExprCall> {
     if let Expr::Call(call) = self {
       Ok(call)
@@ -60,7 +69,7 @@ impl ExprExt for Expr {
     match self {
       Expr::Closure(closure) => Ok(CallOrClosure::Closure(closure.to_token_stream())),
       Expr::Call(call) => Ok(CallOrClosure::Call(call.to_token_stream())),
-      _ => Err(error!(self, "Expected a path or a closure")),
+      _ => Err(error!(self, "Expected a function call or a closure")),
     }
   }
 }

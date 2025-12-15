@@ -3,6 +3,21 @@ use syn::token::Comma;
 use crate::*;
 
 #[derive(Debug, Clone)]
+pub enum PathOrClosure {
+  Path(TokenStream2),
+  Closure(TokenStream2),
+}
+
+impl ToTokens for PathOrClosure {
+  fn to_tokens(&self, tokens: &mut TokenStream2) {
+    match self {
+      PathOrClosure::Path(path) => path.to_tokens(tokens),
+      PathOrClosure::Closure(expr_closure) => expr_closure.to_tokens(tokens),
+    }
+  }
+}
+
+#[derive(Debug, Clone)]
 pub enum CallOrClosure {
   Call(TokenStream2),
   Closure(TokenStream2),
