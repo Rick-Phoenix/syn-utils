@@ -155,6 +155,21 @@ impl TypeInfo {
         let last_segment_ident = last_segment.ident.to_string();
 
         match last_segment_ident.as_str() {
+          "i32" => Self {
+            reference: None,
+            type_: RustType::Int(Int::I32).into(),
+            span: typ.span(),
+          },
+          "u32" => Self {
+            reference: None,
+            type_: RustType::Uint(Uint::U32).into(),
+            span: typ.span(),
+          },
+          "f32" => Self {
+            reference: None,
+            type_: RustType::Float(Float::F32).into(),
+            span: typ.span(),
+          },
           "Bytes" => Self {
             reference: None,
             type_: RustType::Bytes.into(),
