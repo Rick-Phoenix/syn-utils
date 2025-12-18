@@ -3,7 +3,7 @@ use crate::*;
 pub trait EnumVariant {
   fn has_single_item(&self) -> bool;
   fn is_unit(&self) -> bool;
-  fn typ(&self) -> syn::Result<&Type>;
+  fn type_(&self) -> syn::Result<&Type>;
   fn type_mut(&mut self) -> syn::Result<&mut Type>;
   fn type_path(&self) -> syn::Result<&Path>;
   fn type_path_mut(&mut self) -> syn::Result<&mut Path>;
@@ -32,6 +32,7 @@ impl EnumVariant for Variant {
     }
   }
 
+  /// Returns a mutable ref to the type of the enum variant, if the variant contains only a single unnamed field.
   fn type_mut(&mut self) -> syn::Result<&mut Type> {
     let span = self.span();
 
@@ -50,7 +51,8 @@ impl EnumVariant for Variant {
     }
   }
 
-  fn typ(&self) -> syn::Result<&Type> {
+  /// Returns the type of the enum variant, if the variant contains only a single unnamed field.
+  fn type_(&self) -> syn::Result<&Type> {
     if let Fields::Unnamed(fields) = &self.fields && fields.unnamed.len() == 1 {
       Ok(&fields.unnamed.last().unwrap().ty)
     } else {

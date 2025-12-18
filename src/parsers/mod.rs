@@ -33,7 +33,7 @@ impl ToTokens for CallOrClosure {
 }
 
 pub struct PunctuatedItems<T: Parse + ToTokens> {
-  pub items: Vec<T>,
+  pub list: Vec<T>,
 }
 
 pub type PathList = PunctuatedItems<Path>;
@@ -52,13 +52,13 @@ impl<T: Parse + ToTokens> Parse for PunctuatedItems<T> {
       let _comma: Comma = input.parse()?;
     }
 
-    Ok(Self { items: inner })
+    Ok(Self { list: inner })
   }
 }
 
 impl<T: Parse + ToTokens> ToTokens for PunctuatedItems<T> {
   fn to_tokens(&self, tokens: &mut TokenStream2) {
-    let list = &self.items;
+    let list = &self.list;
 
     let output = quote! { #(#list),* };
 

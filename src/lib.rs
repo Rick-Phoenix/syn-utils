@@ -1,6 +1,8 @@
 #[macro_use]
 mod macros;
 
+mod field_or_variant;
+pub use field_or_variant::*;
 mod expr;
 mod generic_args;
 mod parsers;
