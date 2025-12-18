@@ -21,6 +21,8 @@ pub use attributes::*;
 mod field;
 pub use field::*;
 mod enum_variant;
+use std::ops::{Range, RangeFrom};
+
 pub use enum_variant::*;
 pub use expr::*;
 pub use generic_args::*;
@@ -33,9 +35,9 @@ use syn::{
   parse_quote, parse_quote_spanned,
   punctuated::Punctuated,
   spanned::Spanned,
-  token, Attribute, Expr, ExprCall, ExprClosure, Field, Fields, GenericArgument, Ident, Lifetime,
-  Lit, LitInt, LitStr, Meta, Path, PathArguments, PathSegment, Token, Type, TypeArray, TypePath,
-  Variant,
+  token, Attribute, Expr, ExprCall, ExprClosure, ExprRange, Field, Fields, GenericArgument, Ident,
+  Lifetime, Lit, LitInt, LitStr, Meta, Path, PathArguments, PathSegment, Token, Type, TypeArray,
+  TypePath, Variant,
 };
 pub use type_ext::*;
 pub use type_parser::*;

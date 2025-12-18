@@ -11,9 +11,18 @@ pub trait ExprExt {
   fn as_call_or_closure(&self) -> syn::Result<CallOrClosure>;
   fn as_call(&self) -> syn::Result<&ExprCall>;
   fn as_path_or_closure(&self) -> syn::Result<PathOrClosure>;
+  fn as_range(&self) -> syn::Result<&ExprRange>;
 }
 
 impl ExprExt for Expr {
+  fn as_range(&self) -> syn::Result<&ExprRange> {
+    if let Expr::Range(range) = &self {
+      Ok(range)
+    } else {
+      Err(error!(self, "Expected a range expression"))
+    }
+  }
+
   fn as_path_or_closure(&self) -> syn::Result<PathOrClosure> {
     match self {
       Expr::Closure(closure) => Ok(PathOrClosure::Closure(closure.to_token_stream())),

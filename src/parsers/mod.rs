@@ -1,6 +1,117 @@
-use syn::token::Comma;
+use syn::{token::Comma, RangeLimits};
 
 use crate::*;
+
+#[derive(Debug, Clone)]
+pub struct ClosedRangeList {
+  pub list: Vec<Range<i32>>,
+}
+
+impl Parse for ClosedRangeList {
+  fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+    let mut ranges: Vec<Range<i32>> = Vec::new();
+
+    while !input.is_empty() {
+      let item: Expr = input.parse()?;
+
+      if let Expr::Range(range_expr) = &item {
+        let start = if let Some(start_expr) = &range_expr.start {
+          start_expr.as_int::<i32>()?
+        } else {
+          return Err(input.error("Expected a defined start for this range"));
+        };
+
+        if let Some(end_expr) = &range_expr.end {
+          let mut end = end_expr.as_int::<i32>()?;
+
+          if let RangeLimits::Closed(_) = &range_expr.limits {
+            end += 1;
+          }
+
+          ranges.push(start..end)
+        } else {
+          return Err(input.error("Expected a closed range"));
+        }
+      } else if let Expr::Lit(lit) = &item && let Lit::Int(lit_int) = &lit.lit {
+        let num = lit_int.base10_parse::<i32>()?;
+
+        ranges.push(num..num + 1);
+      } else {
+        return Err(error!(
+          item,
+          "Expected a range (e.g. `1..5`, `10..=15`) or a single number"
+        ));
+      }
+
+      if input.is_empty() {
+        break;
+      }
+
+      let _comma: Comma = input.parse()?;
+    }
+
+    ranges.sort_by_key(|range| range.start);
+
+    Ok(Self { list: ranges })
+  }
+}
+
+#[derive(Debug, Clone)]
+pub enum GenericRange {
+  Open(RangeFrom<i32>),
+  Closed(Range<i32>),
+}
+
+#[derive(Debug, Clone)]
+pub struct GenericRangeList {
+  pub list: Vec<GenericRange>,
+}
+
+impl Parse for GenericRangeList {
+  fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+    let mut ranges: Vec<GenericRange> = Vec::new();
+
+    while !input.is_empty() {
+      let item: Expr = input.parse()?;
+
+      if let Expr::Range(range_expr) = &item {
+        let start = if let Some(start_expr) = &range_expr.start {
+          start_expr.as_int::<i32>()?
+        } else {
+          return Err(input.error("Expected a defined start for this range"));
+        };
+
+        if let Some(end_expr) = &range_expr.end {
+          let mut end = end_expr.as_int::<i32>()?;
+
+          if let RangeLimits::Closed(_) = &range_expr.limits {
+            end += 1;
+          }
+          ranges.push(GenericRange::Closed(start..end))
+        } else {
+          ranges.push(GenericRange::Open(start..))
+        }
+      } else if let Expr::Lit(lit) = &item && let Lit::Int(lit_int) = &lit.lit {
+        let num = lit_int.base10_parse::<i32>()?;
+
+        ranges.push(GenericRange::Closed(num..num + 1));
+      } else {
+        return Err(error!(
+          item,
+          "Expected a range (e.g. `1..5`, `10..=15`) or a single number"
+        ));
+      }
+
+      if input.is_empty() {
+        break;
+      }
+
+      let _comma: Comma = input.parse()?;
+    }
+
+    Ok(Self { list: ranges })
+  }
+}
 
 #[derive(Debug, Clone)]
 pub enum PathOrClosure {
