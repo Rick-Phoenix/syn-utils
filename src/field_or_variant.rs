@@ -46,4 +46,36 @@ impl<'a> FieldOrVariant<'a> {
 
     Ok(())
   }
+
+  /// Returns `true` if the field or variant is [`Field`].
+  ///
+  /// [`Field`]: FieldOrVariant::Field
+  #[must_use]
+  pub fn is_field(&self) -> bool {
+    matches!(self, Self::Field(..))
+  }
+
+  /// Returns `true` if the field or variant is [`Variant`].
+  ///
+  /// [`Variant`]: FieldOrVariant::Variant
+  #[must_use]
+  pub fn is_variant(&self) -> bool {
+    matches!(self, Self::Variant(..))
+  }
+
+  pub fn as_field(&self) -> Option<&&'a mut Field> {
+    if let Self::Field(v) = self {
+      Some(v)
+    } else {
+      None
+    }
+  }
+
+  pub fn as_variant(&self) -> Option<&&'a mut Variant> {
+    if let Self::Variant(v) = self {
+      Some(v)
+    } else {
+      None
+    }
+  }
 }

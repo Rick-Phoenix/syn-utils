@@ -361,4 +361,12 @@ impl TypeInfo {
   pub fn is_primitive(&self) -> bool {
     self.type_.is_primitive()
   }
+
+  /// Returns `true` if the rust type is [`Bytes`].
+  ///
+  /// [`Bytes`]: RustType::Bytes
+  #[must_use]
+  pub fn is_bytes(&self) -> bool {
+    self.type_.is_bytes()
+  }
 }

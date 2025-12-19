@@ -235,4 +235,12 @@ impl RustType {
   pub fn is_float(&self) -> bool {
     matches!(self, Self::Float(..))
   }
+
+  /// Returns `true` if the rust type is [`Bytes`].
+  ///
+  /// [`Bytes`]: RustType::Bytes
+  #[must_use]
+  pub fn is_bytes(&self) -> bool {
+    matches!(self, Self::Bytes)
+  }
 }
