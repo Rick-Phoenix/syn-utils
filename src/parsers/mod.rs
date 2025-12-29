@@ -2,18 +2,17 @@ use syn::{RangeLimits, token::Comma};
 
 use crate::*;
 
-/// Iterates over a comma-separated list of `T` in the input stream.
+/// Iterates over a comma-separated list of [`syn::Meta`] in the input stream.
 /// Calls `f` for each parsed item.
 ///
 /// Useful for cases when you want to parse some inputs and register their values
 /// without allocating the parsed items themselves.
-pub fn parse_comma_separated<T, F>(input: ParseStream, mut f: F) -> syn::Result<()>
+pub fn parse_comma_separated<F>(input: ParseStream, mut f: F) -> syn::Result<()>
 where
-  T: Parse,
-  F: FnMut(T) -> syn::Result<()>,
+  F: FnMut(Meta) -> syn::Result<()>,
 {
   while !input.is_empty() {
-    let item: T = input.parse()?;
+    let item: Meta = input.parse()?;
 
     f(item)?;
 
