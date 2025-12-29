@@ -6,7 +6,33 @@ pub enum FieldOrVariant<'a> {
   Variant(&'a mut Variant),
 }
 
+impl<'a> From<&'a mut Field> for FieldOrVariant<'a> {
+  fn from(value: &'a mut Field) -> Self {
+    Self::Field(value)
+  }
+}
+
+impl<'a> From<&'a mut Variant> for FieldOrVariant<'a> {
+  fn from(value: &'a mut Variant) -> Self {
+    Self::Variant(value)
+  }
+}
+
 impl<'a> FieldOrVariant<'a> {
+  pub fn attributes(&self) -> &[Attribute] {
+    match self {
+      FieldOrVariant::Field(field) => &field.attrs,
+      FieldOrVariant::Variant(variant) => &variant.attrs,
+    }
+  }
+
+  pub fn attributes_mut(&mut self) -> &mut Vec<Attribute> {
+    match self {
+      FieldOrVariant::Field(field) => &mut field.attrs,
+      FieldOrVariant::Variant(variant) => &mut variant.attrs,
+    }
+  }
+
   pub fn ident(&self) -> syn::Result<&Ident> {
     match self {
       FieldOrVariant::Field(field) => field.require_ident(),
