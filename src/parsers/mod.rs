@@ -1,6 +1,29 @@
-use syn::{token::Comma, RangeLimits};
+use syn::{RangeLimits, token::Comma};
 
 use crate::*;
+
+/// Iterates over a comma-separated list of `T` in the input stream.
+/// Calls `f` for each parsed item.
+///
+/// Useful for cases when you want to parse some inputs and register their values
+/// without allocating the parsed items themselves.
+pub fn parse_comma_separated<T, F>(input: ParseStream, mut f: F) -> syn::Result<()>
+where
+  T: Parse,
+  F: FnMut(T) -> syn::Result<()>,
+{
+  while !input.is_empty() {
+    let item: T = input.parse()?;
+
+    f(item)?;
+
+    if input.is_empty() {
+      break;
+    }
+    let _: Token![,] = input.parse()?;
+  }
+  Ok(())
+}
 
 #[derive(Debug, Clone)]
 pub struct ClosedRangeList {
@@ -32,7 +55,9 @@ impl Parse for ClosedRangeList {
         } else {
           return Err(input.error("Expected a closed range"));
         }
-      } else if let Expr::Lit(lit) = &item && let Lit::Int(lit_int) = &lit.lit {
+      } else if let Expr::Lit(lit) = &item
+        && let Lit::Int(lit_int) = &lit.lit
+      {
         let num = lit_int.base10_parse::<i32>()?;
 
         ranges.push(num..num + 1);
@@ -91,7 +116,9 @@ impl Parse for GenericRangeList {
         } else {
           ranges.push(GenericRange::Open(start..))
         }
-      } else if let Expr::Lit(lit) = &item && let Lit::Int(lit_int) = &lit.lit {
+      } else if let Expr::Lit(lit) = &item
+        && let Lit::Int(lit_int) = &lit.lit
+      {
         let num = lit_int.base10_parse::<i32>()?;
 
         ranges.push(GenericRange::Closed(num..num + 1));
