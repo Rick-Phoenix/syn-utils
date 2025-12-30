@@ -26,6 +26,13 @@ impl<'a> FieldOrVariant<'a> {
     }
   }
 
+  pub fn span(&self) -> Span {
+    match self {
+      FieldOrVariant::Field(field) => field.span(),
+      FieldOrVariant::Variant(variant) => variant.span(),
+    }
+  }
+
   pub fn attributes_mut(&mut self) -> &mut Vec<Attribute> {
     match self {
       FieldOrVariant::Field(field) => &mut field.attrs,
