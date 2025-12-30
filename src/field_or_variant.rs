@@ -72,14 +72,6 @@ impl<'a> FieldOrVariant<'a> {
     }
   }
 
-  pub fn change_type(&mut self, ty: Type) -> syn::Result<()> {
-    let src_type = self.type_mut()?;
-
-    *src_type = ty;
-
-    Ok(())
-  }
-
   /// Returns `true` if the field or variant is [`Field`].
   ///
   /// [`Field`]: FieldOrVariant::Field
