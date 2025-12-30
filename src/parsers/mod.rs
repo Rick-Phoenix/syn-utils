@@ -2,28 +2,6 @@ use syn::{RangeLimits, token::Comma};
 
 use crate::*;
 
-/// Iterates over a comma-separated list of [`syn::Meta`] in the input stream.
-/// Calls `f` for each parsed item.
-///
-/// Useful for cases when you want to parse some inputs and register their values
-/// without allocating the parsed items themselves.
-pub fn parse_comma_separated<F>(input: ParseStream, mut f: F) -> syn::Result<()>
-where
-  F: FnMut(Meta) -> syn::Result<()>,
-{
-  while !input.is_empty() {
-    let item: Meta = input.parse()?;
-
-    f(item)?;
-
-    if input.is_empty() {
-      break;
-    }
-    let _: Token![,] = input.parse()?;
-  }
-  Ok(())
-}
-
 #[derive(Debug, Clone)]
 pub struct ClosedRangeList {
   pub list: Vec<Range<i32>>,

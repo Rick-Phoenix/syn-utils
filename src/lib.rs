@@ -29,15 +29,17 @@ pub use generic_args::*;
 pub use path::*;
 pub use path_segment::*;
 use proc_macro2::{Span, TokenStream as TokenStream2};
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{ToTokens, quote, quote_spanned};
 use syn::{
+  Attribute, Expr, ExprCall, ExprClosure, ExprRange, Field, Fields, GenericArgument, Ident,
+  Lifetime, Lit, LitInt, LitStr, Meta, Path, PathArguments, PathSegment, Token, Type, TypeArray,
+  TypePath, Variant,
+  meta::ParseNestedMeta,
   parse::{Parse, ParseStream},
   parse_quote, parse_quote_spanned,
   punctuated::Punctuated,
   spanned::Spanned,
-  token, Attribute, Expr, ExprCall, ExprClosure, ExprRange, Field, Fields, GenericArgument, Ident,
-  Lifetime, Lit, LitInt, LitStr, Meta, Path, PathArguments, PathSegment, Token, Type, TypeArray,
-  TypePath, Variant,
+  token,
 };
 pub use type_ext::*;
 pub use type_parser::*;
