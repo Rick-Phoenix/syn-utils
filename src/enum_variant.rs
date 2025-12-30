@@ -1,6 +1,6 @@
 use crate::*;
 
-pub trait EnumVariant {
+pub trait VariantExt {
   fn has_single_item(&self) -> bool;
   fn is_unit(&self) -> bool;
   fn type_(&self) -> syn::Result<&Type>;
@@ -13,9 +13,11 @@ pub trait EnumVariant {
   fn unnamed_fields_mut(&mut self) -> syn::Result<&mut Punctuated<Field, Token![,]>>;
 }
 
-impl EnumVariant for Variant {
+impl VariantExt for Variant {
   fn has_single_item(&self) -> bool {
-    if let Fields::Unnamed(fields) = &self.fields && fields.unnamed.len() == 1 {
+    if let Fields::Unnamed(fields) = &self.fields
+      && fields.unnamed.len() == 1
+    {
       true
     } else {
       false
@@ -25,8 +27,17 @@ impl EnumVariant for Variant {
   fn type_path_mut(&mut self) -> syn::Result<&mut Path> {
     let span = self.span();
 
-    if let Fields::Unnamed(fields) = &mut self.fields && fields.unnamed.len() == 1 {
-      Ok(fields.unnamed.last_mut().unwrap().ty.as_path_mut()?)
+    if let Fields::Unnamed(fields) = &mut self.fields
+      && fields.unnamed.len() == 1
+    {
+      Ok(
+        fields
+          .unnamed
+          .last_mut()
+          .unwrap()
+          .ty
+          .as_path_mut()?,
+      )
     } else {
       bail_with_span!(span, "Expected this variant to have a single unnamed field");
     }
@@ -36,7 +47,9 @@ impl EnumVariant for Variant {
   fn type_mut(&mut self) -> syn::Result<&mut Type> {
     let span = self.span();
 
-    if let Fields::Unnamed(fields) = &mut self.fields && fields.unnamed.len() == 1 {
+    if let Fields::Unnamed(fields) = &mut self.fields
+      && fields.unnamed.len() == 1
+    {
       Ok(&mut fields.unnamed.last_mut().unwrap().ty)
     } else {
       bail_with_span!(span, "Expected this variant to have a single unnamed field");
@@ -44,7 +57,9 @@ impl EnumVariant for Variant {
   }
 
   fn type_path(&self) -> syn::Result<&Path> {
-    if let Fields::Unnamed(fields) = &self.fields && fields.unnamed.len() == 1 {
+    if let Fields::Unnamed(fields) = &self.fields
+      && fields.unnamed.len() == 1
+    {
       Ok(fields.unnamed.last().unwrap().ty.as_path()?)
     } else {
       bail!(self, "Expected this variant to have a single unnamed field");
@@ -53,7 +68,9 @@ impl EnumVariant for Variant {
 
   /// Returns the type of the enum variant, if the variant contains only a single unnamed field.
   fn type_(&self) -> syn::Result<&Type> {
-    if let Fields::Unnamed(fields) = &self.fields && fields.unnamed.len() == 1 {
+    if let Fields::Unnamed(fields) = &self.fields
+      && fields.unnamed.len() == 1
+    {
       Ok(&fields.unnamed.last().unwrap().ty)
     } else {
       bail!(self, "Expected this variant to have a single unnamed field");

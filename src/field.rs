@@ -1,10 +1,10 @@
 use crate::*;
 
-pub trait AsNamedField {
+pub trait FieldExt {
   fn require_ident(&self) -> syn::Result<&Ident>;
 }
 
-impl AsNamedField for Field {
+impl FieldExt for Field {
   fn require_ident(&self) -> syn::Result<&Ident> {
     self
       .ident
