@@ -26,7 +26,7 @@ impl<T: ToTokens> TokensOr<T> {
     }
   }
 
-  pub fn as_option() -> Self {
+  pub fn option() -> Self {
     Self {
       tokens: None,
       default_fn: || quote! { None },
@@ -67,19 +67,8 @@ pub struct IterTokensOr<T: ToTokens> {
   pub format_fn: fn(&Vec<T>, &mut TokenStream2),
 }
 
-#[allow(clippy::new_without_default)]
 impl<T: ToTokens> IterTokensOr<T> {
-  pub fn new() -> Self {
-    Self {
-      items: None,
-      default_fn: || TokenStream2::new(),
-      format_fn: |items, tokens| {
-        tokens.extend(quote! { #(#items),* });
-      },
-    }
-  }
-
-  pub fn as_vec() -> Self {
+  pub fn vec() -> Self {
     Self {
       items: None,
       default_fn: || quote! { vec![] },
@@ -89,7 +78,7 @@ impl<T: ToTokens> IterTokensOr<T> {
     }
   }
 
-  pub fn as_slice() -> Self {
+  pub fn slice() -> Self {
     Self {
       items: None,
       default_fn: || quote! { &[] },
