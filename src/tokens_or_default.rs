@@ -105,6 +105,16 @@ impl<T: ToTokens> IterTokensOr<T> {
     self.items = Some(items);
   }
 
+  pub fn push(&mut self, item: T) {
+    let items = self.items.get_or_insert_default();
+    items.push(item);
+  }
+
+  pub fn extend(&mut self, new_items: impl IntoIterator<Item = T>) {
+    let items = self.items.get_or_insert_default();
+    items.extend(new_items);
+  }
+
   pub fn maybe_set(&mut self, items: Option<Vec<T>>) {
     self.items = items;
   }
