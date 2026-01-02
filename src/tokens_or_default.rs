@@ -62,7 +62,7 @@ impl<T: ToTokens> TokensOr<T> {
 
 #[derive(Debug, Clone)]
 pub struct IterTokensOr<T: ToTokens> {
-  pub items: Option<Vec<T>>,
+  pub items: Vec<T>,
   pub default_fn: fn() -> TokenStream2,
   pub format_fn: fn(&Vec<T>, &mut TokenStream2),
 }
@@ -70,7 +70,7 @@ pub struct IterTokensOr<T: ToTokens> {
 impl<T: ToTokens> IterTokensOr<T> {
   pub fn vec() -> Self {
     Self {
-      items: None,
+      items: Vec::new(),
       default_fn: || quote! { vec![] },
       format_fn: |items, tokens| {
         tokens.extend(quote! { vec![ #(#items),* ] });
@@ -80,7 +80,7 @@ impl<T: ToTokens> IterTokensOr<T> {
 
   pub fn slice() -> Self {
     Self {
-      items: None,
+      items: Vec::new(),
       default_fn: || quote! { &[] },
       format_fn: |items, tokens| {
         tokens.extend(quote! { &[ #(#items),* ] });
@@ -90,7 +90,7 @@ impl<T: ToTokens> IterTokensOr<T> {
 
   pub fn custom(default: fn() -> TokenStream2, formatter: fn(&Vec<T>, &mut TokenStream2)) -> Self {
     Self {
-      items: None,
+      items: Vec::new(),
       default_fn: default,
       format_fn: formatter,
     }
@@ -102,35 +102,32 @@ impl<T: ToTokens> IterTokensOr<T> {
   }
 
   pub fn set(&mut self, items: Vec<T>) {
-    self.items = Some(items);
-  }
-
-  pub fn push(&mut self, item: T) {
-    let items = self.items.get_or_insert_default();
-    items.push(item);
-  }
-
-  pub fn extend(&mut self, new_items: impl IntoIterator<Item = T>) {
-    let items = self.items.get_or_insert_default();
-    items.extend(new_items);
-  }
-
-  pub fn maybe_set(&mut self, items: Option<Vec<T>>) {
     self.items = items;
   }
 
-  pub fn is_default(&self) -> bool {
-    self
-      .items
-      .as_ref()
-      .is_none_or(|items| items.is_empty())
+  pub fn push(&mut self, item: T) {
+    self.items.push(item);
+  }
+
+  pub fn extend(&mut self, new_items: impl IntoIterator<Item = T>) {
+    self.items.extend(new_items);
+  }
+
+  pub fn maybe_set(&mut self, items: Option<Vec<T>>) {
+    if let Some(items) = items {
+      self.items = items;
+    }
+  }
+
+  pub fn is_empty(&self) -> bool {
+    self.items.is_empty()
   }
 }
 
 impl<T: ToTokens> ToTokens for IterTokensOr<T> {
   fn to_tokens(&self, tokens: &mut TokenStream2) {
-    if let Some(items) = &self.items {
-      (self.format_fn)(items, tokens);
+    if !self.items.is_empty() {
+      (self.format_fn)(&self.items, tokens);
     } else {
       tokens.extend((self.default_fn)());
     }
