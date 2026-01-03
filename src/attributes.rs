@@ -10,7 +10,7 @@ pub trait ParseNestedMetaExt {
   fn parse_list<T: Parse>(&self) -> syn::Result<T>;
   fn ident(&self) -> syn::Result<&Ident>;
   fn ident_str(&self) -> syn::Result<String>;
-  fn parse_inner_value<T, F>(&self, f: F) -> syn::Result<Option<T>>
+  fn parse_inner_value<T, F>(&self, f: F) -> syn::Result<T>
   where
     F: FnMut(ParseNestedMeta) -> syn::Result<T>;
 }
@@ -31,7 +31,7 @@ impl ParseNestedMetaExt for ParseNestedMeta<'_> {
     self.path.require_ident()
   }
 
-  fn parse_inner_value<T, F>(&self, mut f: F) -> syn::Result<Option<T>>
+  fn parse_inner_value<T, F>(&self, mut f: F) -> syn::Result<T>
   where
     F: FnMut(ParseNestedMeta) -> syn::Result<T>,
   {
@@ -45,6 +45,8 @@ impl ParseNestedMetaExt for ParseNestedMeta<'_> {
       value = Some(f(meta)?);
       Ok(())
     })?;
+
+    let value = value.ok_or_else(|| self.error("Tried to parse empty nested meta"))?;
 
     Ok(value)
   }
