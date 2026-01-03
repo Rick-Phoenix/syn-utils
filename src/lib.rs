@@ -1,6 +1,8 @@
 #[macro_use]
 mod macros;
 
+mod struct_or_enum;
+pub use struct_or_enum::*;
 mod field_or_variant;
 pub use field_or_variant::*;
 mod expr;
@@ -33,7 +35,7 @@ pub use path_segment::*;
 use proc_macro2::{Span, TokenStream as TokenStream2};
 use quote::{ToTokens, quote, quote_spanned};
 use syn::{
-  Attribute, Expr, ExprCall, ExprClosure, ExprRange, Field, Fields, GenericArgument, Ident,
+  Attribute, Expr, ExprCall, ExprClosure, ExprRange, Field, Fields, GenericArgument, Ident, Item,
   Lifetime, Lit, LitInt, LitStr, Meta, Path, PathArguments, PathSegment, Token, Type, TypeArray,
   TypePath, Variant,
   meta::ParseNestedMeta,
