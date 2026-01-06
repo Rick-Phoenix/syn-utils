@@ -1,4 +1,13 @@
 #[macro_export]
+macro_rules! drain_token_stream {
+  ($input:expr) => {
+    while !$input.is_empty() {
+      $input.parse::<proc_macro2::TokenTree>()?;
+    }
+  };
+}
+
+#[macro_export]
 macro_rules! meta_error {
   ($meta:expr, $fmt:literal $(, $args:expr)* $(,)?) => {
     $meta.error(format!($fmt $(, $args)*))
