@@ -133,16 +133,29 @@ impl ToTokens for PathOrClosure {
 }
 
 #[derive(Debug, Clone)]
-pub enum CallOrClosure {
-  Call(TokenStream2),
+pub enum ClosureOrExpr {
   Closure(TokenStream2),
+  Expr(TokenStream2),
 }
 
-impl ToTokens for CallOrClosure {
+impl Parse for ClosureOrExpr {
+  fn parse(input: ParseStream) -> syn::Result<Self> {
+    let expr: Expr = input.parse()?;
+
+    let output = match expr {
+      Expr::Closure(closure) => Self::Closure(closure.into_token_stream()),
+      _ => Self::Expr(expr.into_token_stream()),
+    };
+
+    Ok(output)
+  }
+}
+
+impl ToTokens for ClosureOrExpr {
   fn to_tokens(&self, tokens: &mut TokenStream2) {
     match self {
-      CallOrClosure::Call(call) => call.to_tokens(tokens),
-      CallOrClosure::Closure(expr_closure) => expr_closure.to_tokens(tokens),
+      ClosureOrExpr::Expr(call) => call.to_tokens(tokens),
+      ClosureOrExpr::Closure(expr_closure) => expr_closure.to_tokens(tokens),
     }
   }
 }

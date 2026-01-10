@@ -1,49 +1,85 @@
 use crate::*;
 
+pub type TokenStreamOr = TokensOr<TokenStream2>;
+
 #[derive(Debug, Clone)]
 pub struct TokensOr<T: ToTokens> {
   pub tokens: Option<T>,
-  pub default_fn: fn() -> TokenStream2,
-  pub format_fn: fn(&T, &mut TokenStream2),
+  pub default_fn: fn(Span) -> TokenStream2,
+  pub format_fn: fn(Span, &T) -> TokenStream2,
+  pub span: Span,
 }
 
 impl<T: ToTokens> ToTokens for TokensOr<T> {
   fn to_tokens(&self, tokens: &mut TokenStream2) {
     if let Some(inner) = &self.tokens {
-      (self.format_fn)(inner, tokens);
+      tokens.extend((self.format_fn)(self.span, inner));
     } else {
-      tokens.extend((self.default_fn)());
+      tokens.extend((self.default_fn)(self.span));
     }
   }
 }
 
 impl<T: ToTokens> TokensOr<T> {
-  pub fn new(default: fn() -> TokenStream2) -> Self {
+  pub fn new(default: fn(Span) -> TokenStream2) -> Self {
     Self {
       tokens: None,
       default_fn: default,
-      format_fn: |val, tokens| val.to_tokens(tokens),
+      format_fn: |span, val| quote_spanned! {span=> #val},
+      span: Span::call_site(),
     }
   }
 
+  pub fn new_spanned(span: Span, default: fn(Span) -> TokenStream2) -> Self {
+    Self {
+      tokens: None,
+      default_fn: default,
+      format_fn: |span, val| quote_spanned! {span=> #val},
+      span,
+    }
+  }
+
+  #[must_use]
+  pub fn vec() -> Self {
+    Self {
+      tokens: None,
+      default_fn: |span| quote_spanned! {span=> vec![] },
+      format_fn: |span, val| {
+        quote_spanned! {span=> #val }
+      },
+      span: Span::call_site(),
+    }
+  }
+
+  #[must_use]
   pub fn option() -> Self {
     Self {
       tokens: None,
-      default_fn: || quote! { None },
-      format_fn: |val, tokens| tokens.extend(quote! { Some(#val) }),
+      default_fn: |span| quote_spanned! {span=> None },
+      format_fn: |span, val| quote_spanned! {span=> Some(#val) },
+      span: Span::call_site(),
     }
   }
 
-  pub fn custom(default_fn: fn() -> TokenStream2, format_fn: fn(&T, &mut TokenStream2)) -> Self {
+  #[must_use]
+  pub fn option_spanned(span: Span) -> Self {
     Self {
       tokens: None,
-      default_fn,
-      format_fn,
+      default_fn: |span| quote_spanned! {span=> None },
+      format_fn: |span, val| quote_spanned! {span=> Some(#val) },
+      span,
     }
   }
 
-  pub fn with_formatter(mut self, format_fn: fn(&T, &mut TokenStream2)) -> Self {
+  #[must_use]
+  pub fn with_formatter(mut self, format_fn: fn(Span, &T) -> TokenStream2) -> Self {
     self.format_fn = format_fn;
+    self
+  }
+
+  #[must_use]
+  pub const fn with_span(mut self, span: Span) -> Self {
+    self.span = span;
     self
   }
 
@@ -55,7 +91,7 @@ impl<T: ToTokens> TokensOr<T> {
     self.tokens = tokens;
   }
 
-  pub fn is_default(&self) -> bool {
+  pub const fn is_default(&self) -> bool {
     self.tokens.is_none()
   }
 }
@@ -63,40 +99,82 @@ impl<T: ToTokens> TokensOr<T> {
 #[derive(Debug, Clone)]
 pub struct IterTokensOr<T: ToTokens> {
   pub items: Vec<T>,
-  pub default_fn: fn() -> TokenStream2,
-  pub format_fn: fn(&Vec<T>, &mut TokenStream2),
+  pub default_fn: fn(Span) -> TokenStream2,
+  pub format_fn: fn(Span, &[T]) -> TokenStream2,
+  pub span: Span,
 }
 
+pub type IterTokenStreamOr = IterTokensOr<TokenStream2>;
+
 impl<T: ToTokens> IterTokensOr<T> {
+  #[must_use]
+  pub const fn with_span(mut self, span: Span) -> Self {
+    self.span = span;
+    self
+  }
+
+  #[must_use]
+  pub fn vec_spanned(span: Span) -> Self {
+    Self {
+      items: Vec::new(),
+      default_fn: |span| quote_spanned! {span=> vec![] },
+      format_fn: |span, items| {
+        quote_spanned! {span=> vec![ #(#items),* ] }
+      },
+      span,
+    }
+  }
+
+  #[must_use]
   pub fn vec() -> Self {
     Self {
       items: Vec::new(),
-      default_fn: || quote! { vec![] },
-      format_fn: |items, tokens| {
-        tokens.extend(quote! { vec![ #(#items),* ] });
+      default_fn: |span| quote_spanned! {span=> vec![] },
+      format_fn: |span, items| {
+        quote_spanned! {span=> vec![ #(#items),* ] }
       },
+      span: Span::call_site(),
     }
   }
 
+  #[must_use]
+  pub fn slice_spanned(span: Span) -> Self {
+    Self {
+      items: Vec::new(),
+      default_fn: |span| quote_spanned! {span=> &[] },
+      format_fn: |span, items| {
+        quote_spanned! {span=> &[ #(#items),* ] }
+      },
+      span,
+    }
+  }
+
+  #[must_use]
   pub fn slice() -> Self {
     Self {
       items: Vec::new(),
-      default_fn: || quote! { &[] },
-      format_fn: |items, tokens| {
-        tokens.extend(quote! { &[ #(#items),* ] });
+      default_fn: |span| quote_spanned! {span=> &[] },
+      format_fn: |span, items| {
+        quote_spanned! {span=> &[ #(#items),* ] }
       },
+      span: Span::call_site(),
     }
   }
 
-  pub fn custom(default: fn() -> TokenStream2, formatter: fn(&Vec<T>, &mut TokenStream2)) -> Self {
+  pub fn new(
+    default_fn: fn(Span) -> TokenStream2,
+    formatter: fn(Span, &[T]) -> TokenStream2,
+  ) -> Self {
     Self {
       items: Vec::new(),
-      default_fn: default,
+      default_fn,
       format_fn: formatter,
+      span: Span::call_site(),
     }
   }
 
-  pub fn with_formatter(mut self, format_fn: fn(&Vec<T>, &mut TokenStream2)) -> Self {
+  #[must_use]
+  pub fn with_formatter(mut self, format_fn: fn(Span, &[T]) -> TokenStream2) -> Self {
     self.format_fn = format_fn;
     self
   }
@@ -119,17 +197,18 @@ impl<T: ToTokens> IterTokensOr<T> {
     }
   }
 
-  pub fn is_empty(&self) -> bool {
+  #[must_use]
+  pub const fn is_empty(&self) -> bool {
     self.items.is_empty()
   }
 }
 
 impl<T: ToTokens> ToTokens for IterTokensOr<T> {
   fn to_tokens(&self, tokens: &mut TokenStream2) {
-    if !self.items.is_empty() {
-      (self.format_fn)(&self.items, tokens);
+    if self.items.is_empty() {
+      tokens.extend((self.default_fn)(self.span));
     } else {
-      tokens.extend((self.default_fn)());
+      (self.format_fn)(self.span, &self.items);
     }
   }
 }

@@ -8,7 +8,7 @@ pub trait ExprExt {
     N: FromStr,
     N::Err: Display;
   fn as_closure(&self) -> syn::Result<&ExprClosure>;
-  fn as_call_or_closure(&self) -> syn::Result<CallOrClosure>;
+  fn as_closure_or_expr(&self) -> ClosureOrExpr;
   fn as_call(&self) -> syn::Result<&ExprCall>;
   fn as_path_or_closure(&self) -> syn::Result<PathOrClosure>;
   fn as_range(&self) -> syn::Result<&ExprRange>;
@@ -39,7 +39,9 @@ impl ExprExt for Expr {
     }
   }
   fn as_string(&self) -> syn::Result<String> {
-    if let Expr::Lit(expr_lit) = self && let Lit::Str(value) = &expr_lit.lit {
+    if let Expr::Lit(expr_lit) = self
+      && let Lit::Str(value) = &expr_lit.lit
+    {
       Ok(value.value())
     } else {
       Err(error!(self, "Expected a string literal"))
@@ -59,7 +61,9 @@ impl ExprExt for Expr {
     N: FromStr,
     N::Err: Display,
   {
-    if let Expr::Lit(expr_lit) = self && let Lit::Int(value) = &expr_lit.lit {
+    if let Expr::Lit(expr_lit) = self
+      && let Lit::Int(value) = &expr_lit.lit
+    {
       Ok(value.base10_parse::<N>()?)
     } else {
       Err(error!(self, "Expected an integer literal"))
@@ -74,11 +78,10 @@ impl ExprExt for Expr {
     }
   }
 
-  fn as_call_or_closure(&self) -> syn::Result<CallOrClosure> {
+  fn as_closure_or_expr(&self) -> ClosureOrExpr {
     match self {
-      Expr::Closure(closure) => Ok(CallOrClosure::Closure(closure.to_token_stream())),
-      Expr::Call(call) => Ok(CallOrClosure::Call(call.to_token_stream())),
-      _ => Err(error!(self, "Expected a function call or a closure")),
+      Expr::Closure(closure) => ClosureOrExpr::Closure(closure.to_token_stream()),
+      _ => ClosureOrExpr::Expr(self.to_token_stream()),
     }
   }
 }
