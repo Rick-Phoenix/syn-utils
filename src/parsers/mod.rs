@@ -3,6 +3,60 @@ use syn::{RangeLimits, token::Comma};
 use crate::*;
 
 #[derive(Debug, Clone)]
+pub struct ParsedStr {
+  pub str: String,
+  pub span: Span,
+}
+
+impl Parse for ParsedStr {
+  fn parse(input: ParseStream) -> syn::Result<Self> {
+    let lit: LitStr = input.parse()?;
+    let span = lit.span();
+
+    Ok(Self {
+      str: lit.value(),
+      span,
+    })
+  }
+}
+
+impl ToTokens for ParsedStr {
+  fn to_tokens(&self, tokens: &mut TokenStream2) {
+    let mut lit = proc_macro2::Literal::string(&self.str);
+    lit.set_span(self.span);
+
+    lit.to_tokens(tokens);
+  }
+}
+
+#[derive(Debug, Clone)]
+pub struct ParsedNum {
+  pub num: i32,
+  pub span: Span,
+}
+
+impl Parse for ParsedNum {
+  fn parse(input: ParseStream) -> syn::Result<Self> {
+    let lit: LitInt = input.parse()?;
+    let span = lit.span();
+
+    Ok(Self {
+      num: lit.base10_parse()?,
+      span,
+    })
+  }
+}
+
+impl ToTokens for ParsedNum {
+  fn to_tokens(&self, tokens: &mut TokenStream2) {
+    let mut literal = proc_macro2::Literal::i32_unsuffixed(self.num);
+    literal.set_span(self.span);
+
+    literal.to_tokens(tokens);
+  }
+}
+
+#[derive(Debug, Clone)]
 pub struct ClosedRangeList {
   pub list: Vec<Range<i32>>,
 }
@@ -126,8 +180,8 @@ pub enum PathOrClosure {
 impl ToTokens for PathOrClosure {
   fn to_tokens(&self, tokens: &mut TokenStream2) {
     match self {
-      PathOrClosure::Path(path) => path.to_tokens(tokens),
-      PathOrClosure::Closure(expr_closure) => expr_closure.to_tokens(tokens),
+      Self::Path(path) => path.to_tokens(tokens),
+      Self::Closure(expr_closure) => expr_closure.to_tokens(tokens),
     }
   }
 }
@@ -154,8 +208,8 @@ impl Parse for ClosureOrExpr {
 impl ToTokens for ClosureOrExpr {
   fn to_tokens(&self, tokens: &mut TokenStream2) {
     match self {
-      ClosureOrExpr::Expr(call) => call.to_tokens(tokens),
-      ClosureOrExpr::Closure(expr_closure) => expr_closure.to_tokens(tokens),
+      Self::Expr(call) => call.to_tokens(tokens),
+      Self::Closure(expr_closure) => expr_closure.to_tokens(tokens),
     }
   }
 }
