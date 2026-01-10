@@ -8,6 +8,29 @@ pub struct ParsedStr {
   pub span: Span,
 }
 
+impl ParsedStr {
+  #[must_use]
+  pub fn with_default_span(str: String) -> Self {
+    Self {
+      str,
+      span: Span::call_site(),
+    }
+  }
+}
+
+impl Display for ParsedStr {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}", self.str)
+  }
+}
+
+impl Deref for ParsedStr {
+  type Target = str;
+  fn deref(&self) -> &Self::Target {
+    &self.str
+  }
+}
+
 impl Parse for ParsedStr {
   fn parse(input: ParseStream) -> syn::Result<Self> {
     let lit: LitStr = input.parse()?;
@@ -33,6 +56,29 @@ impl ToTokens for ParsedStr {
 pub struct ParsedNum {
   pub num: i32,
   pub span: Span,
+}
+
+impl ParsedNum {
+  #[must_use]
+  pub fn with_default_span(num: i32) -> Self {
+    Self {
+      num,
+      span: Span::call_site(),
+    }
+  }
+}
+
+impl Display for ParsedNum {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}", self.num)
+  }
+}
+
+impl Deref for ParsedNum {
+  type Target = i32;
+  fn deref(&self) -> &Self::Target {
+    &self.num
+  }
 }
 
 impl Parse for ParsedNum {
