@@ -25,7 +25,7 @@ impl<T: ToTokens> TokensOr<T> {
     Self {
       tokens: None,
       default_fn: default,
-      format_fn: |span, val| quote_spanned! {span=> #val},
+      format_fn: |_, val| quote! { #val },
       span: Span::call_site(),
     }
   }
@@ -34,7 +34,7 @@ impl<T: ToTokens> TokensOr<T> {
     Self {
       tokens: None,
       default_fn: default,
-      format_fn: |span, val| quote_spanned! {span=> #val},
+      format_fn: |_, val| quote! { #val },
       span,
     }
   }
@@ -43,10 +43,8 @@ impl<T: ToTokens> TokensOr<T> {
   pub fn vec() -> Self {
     Self {
       tokens: None,
-      default_fn: |span| quote_spanned! {span=> vec![] },
-      format_fn: |span, val| {
-        quote_spanned! {span=> #val }
-      },
+      default_fn: |span| quote_spanned! (span=> vec![]),
+      format_fn: |_, val| quote! { #val },
       span: Span::call_site(),
     }
   }
@@ -55,8 +53,8 @@ impl<T: ToTokens> TokensOr<T> {
   pub fn option() -> Self {
     Self {
       tokens: None,
-      default_fn: |span| quote_spanned! {span=> None },
-      format_fn: |span, val| quote_spanned! {span=> Some(#val) },
+      default_fn: |span| quote_spanned! (span=> None),
+      format_fn: |span, val| quote_spanned! (span=> Some(#val)),
       span: Span::call_site(),
     }
   }
@@ -65,8 +63,8 @@ impl<T: ToTokens> TokensOr<T> {
   pub fn option_spanned(span: Span) -> Self {
     Self {
       tokens: None,
-      default_fn: |span| quote_spanned! {span=> None },
-      format_fn: |span, val| quote_spanned! {span=> Some(#val) },
+      default_fn: |span| quote_spanned! (span=> None),
+      format_fn: |span, val| quote_spanned! (span=> Some(#val)),
       span,
     }
   }
@@ -117,10 +115,8 @@ impl<T: ToTokens> IterTokensOr<T> {
   pub fn vec_spanned(span: Span) -> Self {
     Self {
       items: Vec::new(),
-      default_fn: |span| quote_spanned! {span=> vec![] },
-      format_fn: |span, items| {
-        quote_spanned! {span=> vec![ #(#items),* ] }
-      },
+      default_fn: |span| quote_spanned! (span=> vec![]),
+      format_fn: |span, items| quote_spanned! (span=> vec![ #(#items),* ]),
       span,
     }
   }
@@ -129,10 +125,8 @@ impl<T: ToTokens> IterTokensOr<T> {
   pub fn vec() -> Self {
     Self {
       items: Vec::new(),
-      default_fn: |span| quote_spanned! {span=> vec![] },
-      format_fn: |span, items| {
-        quote_spanned! {span=> vec![ #(#items),* ] }
-      },
+      default_fn: |span| quote_spanned! (span=> vec![]),
+      format_fn: |span, items| quote_spanned! (span=> vec![ #(#items),* ]),
       span: Span::call_site(),
     }
   }
@@ -141,10 +135,8 @@ impl<T: ToTokens> IterTokensOr<T> {
   pub fn slice_spanned(span: Span) -> Self {
     Self {
       items: Vec::new(),
-      default_fn: |span| quote_spanned! {span=> &[] },
-      format_fn: |span, items| {
-        quote_spanned! {span=> &[ #(#items),* ] }
-      },
+      default_fn: |span| quote_spanned! (span=> &[]),
+      format_fn: |span, items| quote_spanned! (span=> &[ #(#items),* ]),
       span,
     }
   }
@@ -153,10 +145,8 @@ impl<T: ToTokens> IterTokensOr<T> {
   pub fn slice() -> Self {
     Self {
       items: Vec::new(),
-      default_fn: |span| quote_spanned! {span=> &[] },
-      format_fn: |span, items| {
-        quote_spanned! {span=> &[ #(#items),* ] }
-      },
+      default_fn: |span| quote_spanned! (span=> &[]),
+      format_fn: |span, items| quote_spanned! (span=> &[ #(#items),* ]),
       span: Span::call_site(),
     }
   }
@@ -208,7 +198,7 @@ impl<T: ToTokens> ToTokens for IterTokensOr<T> {
     if self.items.is_empty() {
       tokens.extend((self.default_fn)(self.span));
     } else {
-      (self.format_fn)(self.span, &self.items);
+      tokens.extend((self.format_fn)(self.span, &self.items));
     }
   }
 }
