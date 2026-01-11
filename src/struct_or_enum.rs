@@ -1,10 +1,16 @@
 use crate::*;
 
 pub trait WithAttributes {
+  #[allow(private_interfaces)]
+  const SEALED: Sealed;
+
   fn attrs(&self) -> &[Attribute];
 }
 
 impl WithAttributes for Item {
+  #[allow(private_interfaces)]
+  const SEALED: Sealed = Sealed;
+
   #[inline]
   fn attrs(&self) -> &[Attribute] {
     match self {

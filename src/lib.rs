@@ -37,7 +37,7 @@ use proc_macro2::{Span, TokenStream as TokenStream2};
 use quote::{ToTokens, quote, quote_spanned};
 use syn::{
   Attribute, Expr, ExprCall, ExprClosure, ExprRange, Field, Fields, GenericArgument, Ident, Item,
-  Lifetime, Lit, LitInt, LitStr, Meta, Path, PathArguments, PathSegment, Token, Type, TypeArray,
+  Lifetime, Lit, LitInt, LitStr, Path, PathArguments, PathSegment, Token, Type, TypeArray,
   TypePath, Variant,
   meta::ParseNestedMeta,
   parse::{Parse, ParseStream},
@@ -49,6 +49,10 @@ use syn::{
 pub use type_ext::*;
 pub use type_parser::*;
 
+#[must_use]
+#[inline]
 pub fn new_ident(name: &str) -> Ident {
   Ident::new(name, Span::call_site())
 }
+
+pub(crate) struct Sealed;

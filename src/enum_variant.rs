@@ -1,6 +1,9 @@
 use crate::*;
 
 pub trait VariantExt {
+  #[allow(private_interfaces)]
+  const SEALED: Sealed;
+
   fn has_single_item(&self) -> bool;
   fn is_unit(&self) -> bool;
   fn type_(&self) -> syn::Result<&Type>;
@@ -14,6 +17,10 @@ pub trait VariantExt {
 }
 
 impl VariantExt for Variant {
+  #[allow(private_interfaces)]
+  const SEALED: Sealed = Sealed;
+
+  #[inline]
   fn has_single_item(&self) -> bool {
     if let Fields::Unnamed(fields) = &self.fields
       && fields.unnamed.len() == 1
@@ -77,6 +84,7 @@ impl VariantExt for Variant {
     }
   }
 
+  #[inline]
   fn is_unit(&self) -> bool {
     matches!(self.fields, Fields::Unit)
   }

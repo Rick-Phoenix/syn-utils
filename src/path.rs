@@ -1,12 +1,18 @@
 use crate::*;
 
 pub trait PathExt {
+  #[allow(private_interfaces)]
+  const SEALED: Sealed;
+
   fn last_segment(&self) -> &PathSegment;
   fn last_segment_mut(&mut self) -> &mut PathSegment;
   fn leading_path(&self) -> Vec<&PathSegment>;
 }
 
 impl PathExt for Path {
+  #[allow(private_interfaces)]
+  const SEALED: Sealed = Sealed;
+
   fn leading_path(&self) -> Vec<&PathSegment> {
     let mut segments: Vec<&PathSegment> = Vec::new();
 
@@ -21,10 +27,12 @@ impl PathExt for Path {
     segments
   }
 
+  #[inline]
   fn last_segment(&self) -> &PathSegment {
     self.segments.last().unwrap()
   }
 
+  #[inline]
   fn last_segment_mut(&mut self) -> &mut PathSegment {
     self.segments.last_mut().unwrap()
   }

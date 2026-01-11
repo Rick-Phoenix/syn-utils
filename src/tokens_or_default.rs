@@ -21,6 +21,7 @@ impl<T: ToTokens> ToTokens for TokensOr<T> {
 }
 
 impl<T: ToTokens> TokensOr<T> {
+  #[inline]
   pub fn new(default: fn(Span) -> TokenStream2) -> Self {
     Self {
       tokens: None,
@@ -30,6 +31,7 @@ impl<T: ToTokens> TokensOr<T> {
     }
   }
 
+  #[inline]
   pub fn new_spanned(span: Span, default: fn(Span) -> TokenStream2) -> Self {
     Self {
       tokens: None,
@@ -40,6 +42,7 @@ impl<T: ToTokens> TokensOr<T> {
   }
 
   #[must_use]
+  #[inline]
   pub fn vec() -> Self {
     Self {
       tokens: None,
@@ -50,6 +53,7 @@ impl<T: ToTokens> TokensOr<T> {
   }
 
   #[must_use]
+  #[inline]
   pub fn option() -> Self {
     Self {
       tokens: None,
@@ -60,6 +64,7 @@ impl<T: ToTokens> TokensOr<T> {
   }
 
   #[must_use]
+  #[inline]
   pub fn option_spanned(span: Span) -> Self {
     Self {
       tokens: None,
@@ -70,25 +75,30 @@ impl<T: ToTokens> TokensOr<T> {
   }
 
   #[must_use]
+  #[inline]
   pub fn with_formatter(mut self, format_fn: fn(Span, &T) -> TokenStream2) -> Self {
     self.format_fn = format_fn;
     self
   }
 
   #[must_use]
+  #[inline]
   pub const fn with_span(mut self, span: Span) -> Self {
     self.span = span;
     self
   }
 
+  #[inline]
   pub fn set(&mut self, tokens: T) {
     self.tokens = Some(tokens);
   }
 
+  #[inline]
   pub fn maybe_set(&mut self, tokens: Option<T>) {
     self.tokens = tokens;
   }
 
+  #[inline]
   pub const fn is_default(&self) -> bool {
     self.tokens.is_none()
   }
@@ -106,12 +116,14 @@ pub type IterTokenStreamOr = IterTokensOr<TokenStream2>;
 
 impl<T: ToTokens> IterTokensOr<T> {
   #[must_use]
+  #[inline]
   pub const fn with_span(mut self, span: Span) -> Self {
     self.span = span;
     self
   }
 
   #[must_use]
+  #[inline]
   pub fn vec_spanned(span: Span) -> Self {
     Self {
       items: Vec::new(),
@@ -122,6 +134,7 @@ impl<T: ToTokens> IterTokensOr<T> {
   }
 
   #[must_use]
+  #[inline]
   pub fn vec() -> Self {
     Self {
       items: Vec::new(),
@@ -132,6 +145,7 @@ impl<T: ToTokens> IterTokensOr<T> {
   }
 
   #[must_use]
+  #[inline]
   pub fn slice_spanned(span: Span) -> Self {
     Self {
       items: Vec::new(),
@@ -142,6 +156,7 @@ impl<T: ToTokens> IterTokensOr<T> {
   }
 
   #[must_use]
+  #[inline]
   pub fn slice() -> Self {
     Self {
       items: Vec::new(),
@@ -151,6 +166,7 @@ impl<T: ToTokens> IterTokensOr<T> {
     }
   }
 
+  #[inline]
   pub fn new(
     default_fn: fn(Span) -> TokenStream2,
     formatter: fn(Span, &[T]) -> TokenStream2,
@@ -164,23 +180,28 @@ impl<T: ToTokens> IterTokensOr<T> {
   }
 
   #[must_use]
+  #[inline]
   pub fn with_formatter(mut self, format_fn: fn(Span, &[T]) -> TokenStream2) -> Self {
     self.format_fn = format_fn;
     self
   }
 
+  #[inline]
   pub fn set(&mut self, items: Vec<T>) {
     self.items = items;
   }
 
+  #[inline]
   pub fn push(&mut self, item: T) {
     self.items.push(item);
   }
 
+  #[inline]
   pub fn extend(&mut self, new_items: impl IntoIterator<Item = T>) {
     self.items.extend(new_items);
   }
 
+  #[inline]
   pub fn maybe_set(&mut self, items: Option<Vec<T>>) {
     if let Some(items) = items {
       self.items = items;
@@ -188,6 +209,7 @@ impl<T: ToTokens> IterTokensOr<T> {
   }
 
   #[must_use]
+  #[inline]
   pub const fn is_empty(&self) -> bool {
     self.items.is_empty()
   }

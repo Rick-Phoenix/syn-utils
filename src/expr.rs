@@ -1,6 +1,9 @@
 use crate::*;
 
 pub trait ExprExt {
+  #[allow(private_interfaces)]
+  const SEALED: Sealed;
+
   fn as_string(&self) -> syn::Result<String>;
   fn as_path(&self) -> syn::Result<&Path>;
   fn as_int<N>(&self) -> syn::Result<N>
@@ -15,8 +18,11 @@ pub trait ExprExt {
 }
 
 impl ExprExt for Expr {
+  #[allow(private_interfaces)]
+  const SEALED: Sealed = Sealed;
+
   fn as_range(&self) -> syn::Result<&ExprRange> {
-    if let Expr::Range(range) = &self {
+    if let Self::Range(range) = &self {
       Ok(range)
     } else {
       Err(error!(self, "Expected a range expression"))
@@ -25,21 +31,21 @@ impl ExprExt for Expr {
 
   fn as_path_or_closure(&self) -> syn::Result<PathOrClosure> {
     match self {
-      Expr::Closure(closure) => Ok(PathOrClosure::Closure(closure.to_token_stream())),
-      Expr::Path(expr_path) => Ok(PathOrClosure::Path(expr_path.path.to_token_stream())),
+      Self::Closure(closure) => Ok(PathOrClosure::Closure(closure.to_token_stream())),
+      Self::Path(expr_path) => Ok(PathOrClosure::Path(expr_path.path.to_token_stream())),
       _ => Err(error!(self, "Expected a path or a closure")),
     }
   }
 
   fn as_call(&self) -> syn::Result<&ExprCall> {
-    if let Expr::Call(call) = self {
+    if let Self::Call(call) = self {
       Ok(call)
     } else {
       Err(error!(self, "Expected a function call"))
     }
   }
   fn as_string(&self) -> syn::Result<String> {
-    if let Expr::Lit(expr_lit) = self
+    if let Self::Lit(expr_lit) = self
       && let Lit::Str(value) = &expr_lit.lit
     {
       Ok(value.value())
@@ -49,7 +55,7 @@ impl ExprExt for Expr {
   }
 
   fn as_path(&self) -> syn::Result<&Path> {
-    if let Expr::Path(expr_path) = self {
+    if let Self::Path(expr_path) = self {
       Ok(&expr_path.path)
     } else {
       Err(error!(self, "Expected a path"))
@@ -61,7 +67,7 @@ impl ExprExt for Expr {
     N: FromStr,
     N::Err: Display,
   {
-    if let Expr::Lit(expr_lit) = self
+    if let Self::Lit(expr_lit) = self
       && let Lit::Int(value) = &expr_lit.lit
     {
       Ok(value.base10_parse::<N>()?)
@@ -71,7 +77,7 @@ impl ExprExt for Expr {
   }
 
   fn as_closure(&self) -> syn::Result<&ExprClosure> {
-    if let Expr::Closure(closure) = self {
+    if let Self::Closure(closure) = self {
       Ok(closure)
     } else {
       Err(error!(self, "Expected a closure"))
@@ -80,7 +86,7 @@ impl ExprExt for Expr {
 
   fn as_closure_or_expr(&self) -> ClosureOrExpr {
     match self {
-      Expr::Closure(closure) => ClosureOrExpr::Closure(closure.to_token_stream()),
+      Self::Closure(closure) => ClosureOrExpr::Closure(closure.to_token_stream()),
       _ => ClosureOrExpr::Expr(self.to_token_stream()),
     }
   }

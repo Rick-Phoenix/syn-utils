@@ -1,6 +1,8 @@
 use crate::*;
 
 pub trait ParseNestedMetaExt {
+  #[allow(private_interfaces)]
+  const SEALED: Sealed;
   fn is_path(&self) -> bool;
   fn is_name_value(&self) -> bool;
   fn is_list(&self) -> bool;
@@ -23,10 +25,14 @@ pub enum MetaType {
 }
 
 impl ParseNestedMetaExt for ParseNestedMeta<'_> {
+  #[allow(private_interfaces)]
+  const SEALED: Sealed = Sealed;
+
   fn ident_str(&self) -> syn::Result<String> {
     self.ident().map(|id| id.to_string())
   }
 
+  #[inline]
   fn ident(&self) -> syn::Result<&Ident> {
     self.path.require_ident()
   }
@@ -65,6 +71,7 @@ impl ParseNestedMetaExt for ParseNestedMeta<'_> {
     self.value()?.parse::<T>()
   }
 
+  #[inline]
   fn meta_type(&self) -> MetaType {
     if self.is_list() {
       MetaType::List
@@ -75,14 +82,17 @@ impl ParseNestedMetaExt for ParseNestedMeta<'_> {
     }
   }
 
+  #[inline]
   fn is_list(&self) -> bool {
     self.input.peek(token::Paren)
   }
 
+  #[inline]
   fn is_path(&self) -> bool {
     self.input.is_empty()
   }
 
+  #[inline]
   fn is_name_value(&self) -> bool {
     self.input.peek(Token![=])
   }
@@ -106,37 +116,4 @@ where
   }
 
   Ok(())
-}
-
-pub fn filter_attributes(attrs: &[Attribute], allowed_idents: &[&str]) -> syn::Result<Vec<Meta>> {
-  let mut metas = Vec::new();
-
-  for attr in attrs {
-    let attr_ident = if let Some(ident) = attr.path().get_ident() {
-      ident.to_string()
-    } else {
-      continue;
-    };
-
-    if !allowed_idents.contains(&attr_ident.as_str()) {
-      continue;
-    }
-
-    let parser = |input: ParseStream| -> syn::Result<()> {
-      while !input.is_empty() {
-        let meta: Meta = input.parse()?;
-        metas.push(meta);
-
-        if input.is_empty() {
-          break;
-        }
-        let _: Token![,] = input.parse()?;
-      }
-      Ok(())
-    };
-
-    attr.parse_args_with(parser)?;
-  }
-
-  Ok(metas)
 }

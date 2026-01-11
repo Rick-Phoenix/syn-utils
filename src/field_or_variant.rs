@@ -1,24 +1,28 @@
 use crate::*;
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Eq, Debug)]
 pub enum FieldOrVariant<'a> {
   Field(&'a mut Field),
   Variant(&'a mut Variant),
 }
 
 impl<'a> From<&'a mut Field> for FieldOrVariant<'a> {
+  #[inline]
   fn from(value: &'a mut Field) -> Self {
     Self::Field(value)
   }
 }
 
 impl<'a> From<&'a mut Variant> for FieldOrVariant<'a> {
+  #[inline]
   fn from(value: &'a mut Variant) -> Self {
     Self::Variant(value)
   }
 }
 
 impl<'a> FieldOrVariant<'a> {
+  #[inline]
+  #[must_use]
   pub fn attributes(&self) -> &[Attribute] {
     match self {
       FieldOrVariant::Field(field) => &field.attrs,
@@ -26,6 +30,8 @@ impl<'a> FieldOrVariant<'a> {
     }
   }
 
+  #[inline]
+  #[must_use]
   pub fn span(&self) -> Span {
     match self {
       FieldOrVariant::Field(field) => field.span(),
@@ -33,13 +39,15 @@ impl<'a> FieldOrVariant<'a> {
     }
   }
 
-  pub fn attributes_mut(&mut self) -> &mut Vec<Attribute> {
+  #[inline]
+  pub const fn attributes_mut(&mut self) -> &mut Vec<Attribute> {
     match self {
       FieldOrVariant::Field(field) => &mut field.attrs,
       FieldOrVariant::Variant(variant) => &mut variant.attrs,
     }
   }
 
+  #[inline]
   pub fn ident(&self) -> syn::Result<&Ident> {
     match self {
       FieldOrVariant::Field(field) => field.require_ident(),
@@ -47,6 +55,7 @@ impl<'a> FieldOrVariant<'a> {
     }
   }
 
+  #[inline]
   pub fn get_type(&self) -> syn::Result<&Type> {
     let output = match self {
       FieldOrVariant::Field(field) => &field.ty,
@@ -56,6 +65,7 @@ impl<'a> FieldOrVariant<'a> {
     Ok(output)
   }
 
+  #[inline]
   pub fn type_mut(&mut self) -> syn::Result<&mut Type> {
     let output = match self {
       FieldOrVariant::Field(field) => &mut field.ty,
@@ -65,6 +75,7 @@ impl<'a> FieldOrVariant<'a> {
     Ok(output)
   }
 
+  #[inline]
   pub fn inject_attr(&mut self, attr: Attribute) {
     match self {
       FieldOrVariant::Field(field) => field.attrs.push(attr),
@@ -76,7 +87,8 @@ impl<'a> FieldOrVariant<'a> {
   ///
   /// [`Field`]: FieldOrVariant::Field
   #[must_use]
-  pub fn is_field(&self) -> bool {
+  #[inline]
+  pub const fn is_field(&self) -> bool {
     matches!(self, Self::Field(..))
   }
 
@@ -84,11 +96,14 @@ impl<'a> FieldOrVariant<'a> {
   ///
   /// [`Variant`]: FieldOrVariant::Variant
   #[must_use]
-  pub fn is_variant(&self) -> bool {
+  #[inline]
+  pub const fn is_variant(&self) -> bool {
     matches!(self, Self::Variant(..))
   }
 
-  pub fn as_field(&self) -> Option<&&'a mut Field> {
+  #[must_use]
+  #[inline]
+  pub const fn as_field(&self) -> Option<&&'a mut Field> {
     if let Self::Field(v) = self {
       Some(v)
     } else {
@@ -96,7 +111,9 @@ impl<'a> FieldOrVariant<'a> {
     }
   }
 
-  pub fn as_variant(&self) -> Option<&&'a mut Variant> {
+  #[must_use]
+  #[inline]
+  pub const fn as_variant(&self) -> Option<&&'a mut Variant> {
     if let Self::Variant(v) = self {
       Some(v)
     } else {

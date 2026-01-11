@@ -13,12 +13,12 @@ pub enum Int {
 impl ToTokens for Int {
   fn to_tokens(&self, tokens: &mut TokenStream2) {
     let output = match self {
-      Int::ISize => quote! { isize },
-      Int::I8 => quote! { i8 },
-      Int::I16 => quote! { i16 },
-      Int::I32 => quote! { i32 },
-      Int::I64 => quote! { i64 },
-      Int::I128 => quote! { i128 },
+      Self::ISize => quote! { isize },
+      Self::I8 => quote! { i8 },
+      Self::I16 => quote! { i16 },
+      Self::I32 => quote! { i32 },
+      Self::I64 => quote! { i64 },
+      Self::I128 => quote! { i128 },
     };
 
     tokens.extend(output);
@@ -38,12 +38,12 @@ pub enum Uint {
 impl ToTokens for Uint {
   fn to_tokens(&self, tokens: &mut TokenStream2) {
     let output = match self {
-      Uint::USize => quote! { usize },
-      Uint::U8 => quote! { u8 },
-      Uint::U16 => quote! { u16 },
-      Uint::U32 => quote! { u32 },
-      Uint::U64 => quote! { u64 },
-      Uint::U128 => quote! { u128 },
+      Self::USize => quote! { usize },
+      Self::U8 => quote! { u8 },
+      Self::U16 => quote! { u16 },
+      Self::U32 => quote! { u32 },
+      Self::U64 => quote! { u64 },
+      Self::U128 => quote! { u128 },
     };
 
     tokens.extend(output);
@@ -59,8 +59,8 @@ pub enum Float {
 impl ToTokens for Float {
   fn to_tokens(&self, tokens: &mut TokenStream2) {
     let output = match self {
-      Float::F32 => quote! { f32 },
-      Float::F64 => quote! { f64 },
+      Self::F32 => quote! { f32 },
+      Self::F64 => quote! { f64 },
     };
 
     tokens.extend(output);

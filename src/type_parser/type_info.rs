@@ -10,6 +10,7 @@ pub struct TypeInfo {
 }
 
 impl PartialEq for TypeInfo {
+  #[inline]
   fn eq(&self, other: &Self) -> bool {
     self.reference == other.reference && self.type_ == other.type_
   }
@@ -43,41 +44,46 @@ impl From<TypeInfo> for Type {
 }
 
 impl TypeInfo {
+  #[inline]
+  #[must_use]
   pub fn inner(&self) -> &Self {
     match self.type_.as_ref() {
-      RustType::Slice(ty) => ty,
       RustType::Array(array) => &array.inner,
-      RustType::Option(ty) => ty,
-      RustType::Box(ty) => ty,
-      RustType::Vec(ty) => ty,
-      RustType::Tuple(_) => self,
-      RustType::HashMap(_) => self,
-      RustType::String => self,
-      RustType::Int(_) => self,
-      RustType::Uint(_) => self,
-      RustType::Float(_) => self,
-      RustType::Bool => self,
-      RustType::Other(_) => self,
-      RustType::Bytes => self,
+      RustType::Slice(ty) | RustType::Option(ty) | RustType::Box(ty) | RustType::Vec(ty) => ty,
+      RustType::Tuple(_)
+      | RustType::HashMap(_)
+      | RustType::String
+      | RustType::Int(_)
+      | RustType::Uint(_)
+      | RustType::Float(_)
+      | RustType::Bool
+      | RustType::Other(_)
+      | RustType::Bytes => self,
     }
   }
 
+  #[inline]
+  #[must_use]
   pub fn as_path(&self) -> Option<Path> {
     self.type_.as_path()
   }
 
+  #[inline]
   pub fn require_path(&self) -> syn::Result<Path> {
     self
       .as_path()
       .ok_or(error!(self, "Expected a type path"))
   }
 
+  #[must_use]
   pub fn as_type(&self) -> Type {
     parse_quote_spanned! {self.span=>
       #self
     }
   }
 
+  #[must_use]
+  #[inline]
   pub fn is_mut_ref(&self) -> bool {
     self
       .reference
@@ -85,6 +91,8 @@ impl TypeInfo {
       .is_some_and(|r| matches!(r.kind, RefKind::MutRef))
   }
 
+  #[inline]
+  #[must_use]
   pub fn is_ref(&self) -> bool {
     self
       .reference
@@ -92,7 +100,9 @@ impl TypeInfo {
       .is_some_and(|r| matches!(r.kind, RefKind::Ref))
   }
 
-  pub fn is_owned(&self) -> bool {
+  #[must_use]
+  #[inline]
+  pub const fn is_owned(&self) -> bool {
     self.reference.is_none()
   }
 
@@ -252,6 +262,7 @@ impl TypeInfo {
   ///
   /// [`Slice`]: RustType::Slice
   #[must_use]
+  #[inline]
   pub fn is_slice(&self) -> bool {
     self.type_.is_slice()
   }
@@ -260,6 +271,7 @@ impl TypeInfo {
   ///
   /// [`Array`]: RustType::Array
   #[must_use]
+  #[inline]
   pub fn is_array(&self) -> bool {
     self.type_.is_array()
   }
@@ -268,6 +280,7 @@ impl TypeInfo {
   ///
   /// [`Tuple`]: RustType::Tuple
   #[must_use]
+  #[inline]
   pub fn is_tuple(&self) -> bool {
     self.type_.is_tuple()
   }
@@ -276,6 +289,7 @@ impl TypeInfo {
   ///
   /// [`Option`]: RustType::Option
   #[must_use]
+  #[inline]
   pub fn is_option(&self) -> bool {
     self.type_.is_option()
   }
@@ -284,6 +298,7 @@ impl TypeInfo {
   ///
   /// [`Box`]: RustType::Box
   #[must_use]
+  #[inline]
   pub fn is_box(&self) -> bool {
     self.type_.is_box()
   }
@@ -292,6 +307,7 @@ impl TypeInfo {
   ///
   /// [`Vec`]: RustType::Vec
   #[must_use]
+  #[inline]
   pub fn is_vec(&self) -> bool {
     self.type_.is_vec()
   }
@@ -300,6 +316,7 @@ impl TypeInfo {
   ///
   /// [`HashMap`]: RustType::HashMap
   #[must_use]
+  #[inline]
   pub fn is_hash_map(&self) -> bool {
     self.type_.is_hash_map()
   }
@@ -308,6 +325,7 @@ impl TypeInfo {
   ///
   /// [`Other`]: RustType::Other
   #[must_use]
+  #[inline]
   pub fn is_other(&self) -> bool {
     self.type_.is_other()
   }
@@ -316,6 +334,7 @@ impl TypeInfo {
   ///
   /// [`Bool`]: RustType::Bool
   #[must_use]
+  #[inline]
   pub fn is_bool(&self) -> bool {
     self.type_.is_bool()
   }
@@ -324,6 +343,7 @@ impl TypeInfo {
   ///
   /// [`String`]: RustType::String
   #[must_use]
+  #[inline]
   pub fn is_string(&self) -> bool {
     self.type_.is_string()
   }
@@ -332,6 +352,7 @@ impl TypeInfo {
   ///
   /// [`Int`]: RustType::Int
   #[must_use]
+  #[inline]
   pub fn is_int(&self) -> bool {
     self.type_.is_int()
   }
@@ -340,6 +361,7 @@ impl TypeInfo {
   ///
   /// [`Uint`]: RustType::Uint
   #[must_use]
+  #[inline]
   pub fn is_uint(&self) -> bool {
     self.type_.is_uint()
   }
@@ -348,16 +370,19 @@ impl TypeInfo {
   ///
   /// [`Float`]: RustType::Float
   #[must_use]
+  #[inline]
   pub fn is_float(&self) -> bool {
     self.type_.is_float()
   }
 
   #[must_use]
+  #[inline]
   pub fn is_num(&self) -> bool {
     self.type_.is_num()
   }
 
   #[must_use]
+  #[inline]
   pub fn is_primitive(&self) -> bool {
     self.type_.is_primitive()
   }
@@ -366,6 +391,7 @@ impl TypeInfo {
   ///
   /// [`Bytes`]: RustType::Bytes
   #[must_use]
+  #[inline]
   pub fn is_bytes(&self) -> bool {
     self.type_.is_bytes()
   }

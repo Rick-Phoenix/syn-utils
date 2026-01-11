@@ -1,4 +1,4 @@
-use quote::{quote, ToTokens};
+use quote::{ToTokens, quote};
 use syn::Type;
 use syn_utils::{Array, RefKind, RustType, TypeInfo};
 
@@ -15,8 +15,7 @@ fn assert_round_trip(input_str: &str) {
 
   assert_eq!(
     output_str, normalized_input,
-    "Round trip failed for: {}",
-    input_str
+    "Round trip failed for: {input_str}"
   );
 }
 
@@ -76,7 +75,7 @@ fn test_slices() {
 }
 
 fn get_info(s: &str) -> TypeInfo {
-  let ty: Type = syn::parse_str(s).unwrap_or_else(|_| panic!("Failed to parse rust syntax: {}", s));
+  let ty: Type = syn::parse_str(s).unwrap_or_else(|_| panic!("Failed to parse rust syntax: {s}"));
   TypeInfo::from_type(&ty).unwrap()
 }
 
@@ -174,11 +173,12 @@ fn test_nested_wrappers() {
   let info = get_info("Option<Vec<Box<i32>>>");
 
   if let RustType::Option(l1) = &*info.type_
-      && let RustType::Vec(l2) = &*l1.type_
-        && let RustType::Box(l3) = &*l2.type_ {
-          assert_inner_eq(l3, "i32");
-          return;
-        }
+    && let RustType::Vec(l2) = &*l1.type_
+    && let RustType::Box(l3) = &*l2.type_
+  {
+    assert_inner_eq(l3, "i32");
+    return;
+  }
   panic!("Failed to parse deeply nested wrappers");
 }
 

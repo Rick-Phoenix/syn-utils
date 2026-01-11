@@ -10,6 +10,7 @@ pub struct ParsedStr {
 
 impl ParsedStr {
   #[must_use]
+  #[inline]
   pub fn with_default_span(str: String) -> Self {
     Self {
       str,
@@ -26,6 +27,7 @@ impl Display for ParsedStr {
 
 impl Deref for ParsedStr {
   type Target = str;
+  #[inline]
   fn deref(&self) -> &Self::Target {
     &self.str
   }
@@ -60,6 +62,7 @@ pub struct ParsedNum {
 
 impl ParsedNum {
   #[must_use]
+  #[inline]
   pub fn with_default_span(num: i32) -> Self {
     Self {
       num,
@@ -76,6 +79,7 @@ impl Display for ParsedNum {
 
 impl Deref for ParsedNum {
   type Target = i32;
+  #[inline]
   fn deref(&self) -> &Self::Target {
     &self.num
   }
