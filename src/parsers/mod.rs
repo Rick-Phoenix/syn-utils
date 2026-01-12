@@ -8,6 +8,15 @@ pub struct ParsedStr {
   pub span: Span,
 }
 
+impl Default for ParsedStr {
+  fn default() -> Self {
+    Self {
+      str: String::new(),
+      span: Span::call_site(),
+    }
+  }
+}
+
 impl ParsedStr {
   #[must_use]
   #[inline]
@@ -54,10 +63,19 @@ impl ToTokens for ParsedStr {
   }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct ParsedNum {
   pub num: i32,
   pub span: Span,
+}
+
+impl Default for ParsedNum {
+  fn default() -> Self {
+    Self {
+      num: 0,
+      span: Span::call_site(),
+    }
+  }
 }
 
 impl ParsedNum {
