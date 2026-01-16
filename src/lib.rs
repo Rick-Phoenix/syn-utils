@@ -17,6 +17,8 @@ use std::{fmt::Display, rc::Rc, str::FromStr};
 
 pub use parsers::*;
 
+mod lazy_tokens;
+pub use lazy_tokens::*;
 mod tokens_or_default;
 pub use tokens_or_default::*;
 mod control_flow;
@@ -34,7 +36,7 @@ pub use generic_args::*;
 pub use path::*;
 pub use path_segment::*;
 use proc_macro2::{Span, TokenStream as TokenStream2};
-use quote::{ToTokens, quote, quote_spanned};
+use quote::{ToTokens, TokenStreamExt, quote, quote_spanned};
 use syn::{
   Attribute, Expr, ExprCall, ExprClosure, ExprRange, Field, Fields, GenericArgument, Ident, Item,
   Lifetime, Lit, LitInt, LitStr, Path, PathArguments, PathSegment, Token, Type, TypeArray,

@@ -50,15 +50,7 @@ impl TypeInfo {
     match self.type_.as_ref() {
       RustType::Array(array) => &array.inner,
       RustType::Slice(ty) | RustType::Option(ty) | RustType::Box(ty) | RustType::Vec(ty) => ty,
-      RustType::Tuple(_)
-      | RustType::HashMap(_)
-      | RustType::String
-      | RustType::Int(_)
-      | RustType::Uint(_)
-      | RustType::Float(_)
-      | RustType::Bool
-      | RustType::Other(_)
-      | RustType::Bytes => self,
+      _ => self,
     }
   }
 
@@ -191,6 +183,19 @@ impl TypeInfo {
             Self {
               reference: None,
               type_: RustType::HashMap((
+                Self::from_type(k.as_type()?)?.into(),
+                Self::from_type(v.as_type()?)?.into(),
+              ))
+              .into(),
+              span: typ.span(),
+            }
+          }
+          "BTreeMap" => {
+            let (k, v) = last_segment.first_two_generics().unwrap();
+
+            Self {
+              reference: None,
+              type_: RustType::BTreeMap((
                 Self::from_type(k.as_type()?)?.into(),
                 Self::from_type(v.as_type()?)?.into(),
               ))
@@ -394,5 +399,12 @@ impl TypeInfo {
   #[inline]
   pub fn is_bytes(&self) -> bool {
     self.type_.is_bytes()
+  }
+  /// Returns `true` if the rust type is [`BTreeMap`].
+  ///
+  /// [`BTreeMap`]: RustType::BTreeMap
+  #[must_use]
+  pub fn is_btree_map(&self) -> bool {
+    self.type_.is_btree_map()
   }
 }

@@ -9,6 +9,7 @@ pub enum RustType {
   Box(Rc<TypeInfo>),
   Vec(Rc<TypeInfo>),
   HashMap((Rc<TypeInfo>, Rc<TypeInfo>)),
+  BTreeMap((Rc<TypeInfo>, Rc<TypeInfo>)),
   String,
   Bytes,
   Int(Int),
@@ -34,6 +35,7 @@ impl ToTokens for RustType {
       Self::Box(ty) => quote! { Box<#ty> },
       Self::Vec(ty) => quote! { Vec<#ty> },
       Self::HashMap((k, v)) => quote! { HashMap<#k, #v> },
+      Self::BTreeMap((k, v)) => quote! { BTreeMap<#k, #v> },
       Self::Other(path) => quote! { #path },
       Self::Int(int) => int.to_token_stream(),
       Self::Uint(uint) => uint.to_token_stream(),
@@ -275,5 +277,22 @@ impl RustType {
   #[inline]
   pub const fn is_bytes(&self) -> bool {
     matches!(self, Self::Bytes)
+  }
+
+  /// Returns `true` if the rust type is [`BTreeMap`].
+  ///
+  /// [`BTreeMap`]: RustType::BTreeMap
+  #[must_use]
+  pub const fn is_btree_map(&self) -> bool {
+    matches!(self, Self::BTreeMap(..))
+  }
+
+  #[must_use]
+  pub const fn as_btree_map(&self) -> Option<&(Rc<TypeInfo>, Rc<TypeInfo>)> {
+    if let Self::BTreeMap(v) = self {
+      Some(v)
+    } else {
+      None
+    }
   }
 }

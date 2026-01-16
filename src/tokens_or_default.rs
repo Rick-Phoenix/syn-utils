@@ -10,6 +10,17 @@ pub struct TokensOr<T: ToTokens> {
   pub span: Span,
 }
 
+impl<T: ToTokens> Default for TokensOr<T> {
+  fn default() -> Self {
+    Self {
+      tokens: None,
+      default_fn: |_| TokenStream2::new(),
+      format_fn: |_, val| quote! { #val },
+      span: Span::call_site(),
+    }
+  }
+}
+
 impl<T: ToTokens> ToTokens for TokensOr<T> {
   fn to_tokens(&self, tokens: &mut TokenStream2) {
     if let Some(inner) = &self.tokens {
@@ -110,6 +121,17 @@ pub struct IterTokensOr<T: ToTokens> {
   pub default_fn: fn(Span) -> TokenStream2,
   pub format_fn: fn(Span, &[T]) -> TokenStream2,
   pub span: Span,
+}
+
+impl<T: ToTokens> Default for IterTokensOr<T> {
+  fn default() -> Self {
+    Self {
+      items: vec![],
+      default_fn: |_| TokenStream2::new(),
+      format_fn: |_, items| quote! { #(#items)* },
+      span: Span::call_site(),
+    }
+  }
 }
 
 pub type IterTokenStreamOr = IterTokensOr<TokenStream2>;

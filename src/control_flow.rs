@@ -17,23 +17,62 @@ impl OptionSpan for Option<Span> {
   }
 }
 
-pub trait MacroResult: Sized {
+pub trait OptionTokens: Sized {
   #[allow(private_interfaces)]
   const SEALED: Sealed;
 
   fn unwrap_or_unimplemented(self) -> TokenStream2;
-  fn unwrap_or_compile_error(self) -> TokenStream2;
 }
 
-impl<T: ToTokens> MacroResult for syn::Result<T> {
+impl<T: ToTokens> OptionTokens for Option<T> {
   #[allow(private_interfaces)]
   const SEALED: Sealed = Sealed;
 
-  fn unwrap_or_compile_error(self) -> TokenStream2 {
+  fn unwrap_or_unimplemented(self) -> TokenStream2 {
+    self.map_or_else(|| quote! { unimplemented!() }, |i| i.to_token_stream())
+  }
+}
+
+pub trait MacroResult<T>: Sized {
+  #[allow(private_interfaces)]
+  const SEALED: Sealed;
+
+  fn unwrap_or_unimplemented(self) -> TokenStream2
+  where
+    T: ToTokens;
+  fn unwrap_or_compile_error(self) -> TokenStream2
+  where
+    T: ToTokens;
+  fn unwrap_or_default_and_push_error(self, errors: &mut Vec<syn::Error>) -> T
+  where
+    T: Default;
+}
+
+impl<T> MacroResult<T> for syn::Result<T> {
+  #[allow(private_interfaces)]
+  const SEALED: Sealed = Sealed;
+
+  fn unwrap_or_default_and_push_error(self, errors: &mut Vec<syn::Error>) -> T
+  where
+    T: Default,
+  {
+    self.unwrap_or_else(|e| {
+      errors.push(e);
+      T::default()
+    })
+  }
+
+  fn unwrap_or_compile_error(self) -> TokenStream2
+  where
+    T: ToTokens,
+  {
     self.map_or_else(|err| err.into_compile_error(), |v| v.into_token_stream())
   }
 
-  fn unwrap_or_unimplemented(self) -> TokenStream2 {
+  fn unwrap_or_unimplemented(self) -> TokenStream2
+  where
+    T: ToTokens,
+  {
     self.map_or_else(
       |error| {
         let error = error.into_compile_error();
