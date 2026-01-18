@@ -283,11 +283,13 @@ impl RustType {
   ///
   /// [`BTreeMap`]: RustType::BTreeMap
   #[must_use]
+  #[inline]
   pub const fn is_btree_map(&self) -> bool {
     matches!(self, Self::BTreeMap(..))
   }
 
   #[must_use]
+  #[inline]
   pub const fn as_btree_map(&self) -> Option<&(Rc<TypeInfo>, Rc<TypeInfo>)> {
     if let Self::BTreeMap(v) = self {
       Some(v)

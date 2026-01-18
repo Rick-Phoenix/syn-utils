@@ -9,6 +9,7 @@ pub struct ParsedStr {
 }
 
 impl Default for ParsedStr {
+  #[inline]
   fn default() -> Self {
     Self {
       str: String::new(),
@@ -70,6 +71,7 @@ pub struct ParsedNum {
 }
 
 impl Default for ParsedNum {
+  #[inline]
   fn default() -> Self {
     Self {
       num: 0,

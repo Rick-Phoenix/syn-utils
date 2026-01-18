@@ -10,6 +10,7 @@ pub struct CrateName {
 
 impl CrateName {
   #[must_use]
+  #[inline]
   pub const fn new(name: &'static str) -> Self {
     Self { name }
   }
@@ -31,6 +32,7 @@ pub struct LazyPath {
 
 impl LazyPath {
   #[must_use]
+  #[inline]
   pub const fn new(segments: &'static [&'static str]) -> Self {
     Self { segments }
   }
@@ -55,6 +57,7 @@ impl<F> LazyTokens<F>
 where
   F: Fn() -> TokenStream2,
 {
+  #[inline]
   pub const fn new(init: F) -> Self {
     Self {
       init,

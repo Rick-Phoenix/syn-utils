@@ -38,6 +38,7 @@ impl ToTokens for TypeInfo {
 }
 
 impl From<TypeInfo> for Type {
+  #[inline]
   fn from(value: TypeInfo) -> Self {
     value.as_type()
   }
@@ -404,6 +405,7 @@ impl TypeInfo {
   ///
   /// [`BTreeMap`]: RustType::BTreeMap
   #[must_use]
+  #[inline]
   pub fn is_btree_map(&self) -> bool {
     self.type_.is_btree_map()
   }
