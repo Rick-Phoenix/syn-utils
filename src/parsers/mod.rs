@@ -292,6 +292,7 @@ pub struct PunctuatedItems<T: Parse + ToTokens> {
 }
 
 impl<T: Parse + ToTokens> DerefMut for PunctuatedItems<T> {
+  #[inline]
   fn deref_mut(&mut self) -> &mut Self::Target {
     &mut self.list
   }
@@ -300,16 +301,19 @@ impl<T: Parse + ToTokens> DerefMut for PunctuatedItems<T> {
 impl<T: Parse + ToTokens> Deref for PunctuatedItems<T> {
   type Target = [T];
 
+  #[inline]
   fn deref(&self) -> &Self::Target {
     &self.list
   }
 }
 
 impl<T: Parse + ToTokens> PunctuatedItems<T> {
+  #[inline]
   pub fn iter(&self) -> slice::Iter<'_, T> {
     self.into_iter()
   }
 
+  #[inline]
   pub fn iter_mut(&mut self) -> slice::IterMut<'_, T> {
     self.into_iter()
   }
@@ -319,6 +323,7 @@ impl<T: Parse + ToTokens> IntoIterator for PunctuatedItems<T> {
   type IntoIter = vec::IntoIter<T>;
   type Item = T;
 
+  #[inline]
   fn into_iter(self) -> Self::IntoIter {
     self.list.into_iter()
   }
@@ -328,6 +333,7 @@ impl<'a, T: Parse + ToTokens> IntoIterator for &'a PunctuatedItems<T> {
   type IntoIter = slice::Iter<'a, T>;
   type Item = &'a T;
 
+  #[inline]
   fn into_iter(self) -> Self::IntoIter {
     self.list.iter()
   }
@@ -337,6 +343,7 @@ impl<'a, T: Parse + ToTokens> IntoIterator for &'a mut PunctuatedItems<T> {
   type IntoIter = slice::IterMut<'a, T>;
   type Item = &'a mut T;
 
+  #[inline]
   fn into_iter(self) -> Self::IntoIter {
     self.list.iter_mut()
   }

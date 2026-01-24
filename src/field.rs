@@ -15,6 +15,6 @@ impl FieldExt for Field {
     self
       .ident
       .as_ref()
-      .ok_or(error!(self, "Expected a named field"))
+      .ok_or_else(|| error!(self, "Expected a named field"))
   }
 }

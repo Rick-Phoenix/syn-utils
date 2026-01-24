@@ -4,8 +4,8 @@ pub trait PathExt {
   #[allow(private_interfaces)]
   const SEALED: Sealed;
 
-  fn last_segment(&self) -> &PathSegment;
-  fn last_segment_mut(&mut self) -> &mut PathSegment;
+  fn last_segment(&self) -> Option<&PathSegment>;
+  fn last_segment_mut(&mut self) -> Option<&mut PathSegment>;
   fn leading_path(&self) -> Vec<&PathSegment>;
 }
 
@@ -28,12 +28,12 @@ impl PathExt for Path {
   }
 
   #[inline]
-  fn last_segment(&self) -> &PathSegment {
-    self.segments.last().unwrap()
+  fn last_segment(&self) -> Option<&PathSegment> {
+    self.segments.last()
   }
 
   #[inline]
-  fn last_segment_mut(&mut self) -> &mut PathSegment {
-    self.segments.last_mut().unwrap()
+  fn last_segment_mut(&mut self) -> Option<&mut PathSegment> {
+    self.segments.last_mut()
   }
 }

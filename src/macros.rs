@@ -10,14 +10,14 @@ macro_rules! drain_token_stream {
 #[macro_export]
 macro_rules! meta_error {
   ($meta:expr, $fmt:literal $(, $args:expr)* $(,)?) => {
-    $meta.error(format!($fmt $(, $args)*))
+    $meta.error(format_args!($fmt $(, $args)*))
   };
 }
 
 #[macro_export]
 macro_rules! return_meta_error {
   ($meta:expr, $fmt:literal $(, $args:expr)* $(,)?) => {
-    return Err($meta.error(format!($fmt $(, $args)*)))
+    return Err($meta.error(format_args!($fmt $(, $args)*)))
   };
 }
 
@@ -26,7 +26,7 @@ macro_rules! bail {
   ($item:expr, $fmt:literal $(, $args:expr)* $(,)?) => {
     return Err(syn::Error::new_spanned(
       &$item,
-      format!($fmt $(, $args)*)
+      format_args!($fmt $(, $args)*)
     ))
   };
 }
@@ -36,7 +36,7 @@ macro_rules! bail_with_span {
   ($span:expr, $fmt:literal $(, $args:expr)* $(,)?) => {
     return Err(syn::Error::new(
       $span,
-      format!($fmt $(, $args)*)
+      format_args!($fmt $(, $args)*)
     ))
   };
 }
@@ -46,7 +46,7 @@ macro_rules! bail_call_site {
   ($fmt:literal $(, $args:expr)* $(,)?) => {
     return Err(syn::Error::new(
       proc_macro2::Span::call_site(),
-      format!($fmt $(, $args)*)
+      format_args!($fmt $(, $args)*)
     ))
   };
 }
@@ -56,7 +56,7 @@ macro_rules! error {
   ($item:expr, $fmt:literal $(, $args:expr)* $(,)?) => {
     syn::Error::new_spanned(
       &$item,
-      format!($fmt $(, $args)*)
+      format_args!($fmt $(, $args)*)
     )
   };
 }
@@ -66,7 +66,7 @@ macro_rules! error_with_span {
   ($span:expr, $fmt:literal $(, $args:expr)* $(,)?) => {
     syn::Error::new(
       $span,
-      format!($fmt $(, $args)*)
+      format_args!($fmt $(, $args)*)
     )
   };
 }
@@ -76,7 +76,7 @@ macro_rules! error_call_site {
   ($fmt:literal $(, $args:expr)* $(,)?) => {
     syn::Error::new(
       proc_macro2::Span::call_site(),
-      format!($fmt $(, $args)*)
+      format_args!($fmt $(, $args)*)
     )
   };
 }

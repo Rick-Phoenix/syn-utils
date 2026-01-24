@@ -53,8 +53,10 @@ impl PathSegmentExt for PathSegment {
   fn first_two_generics(&self) -> Option<(&GenericArgument, &GenericArgument)> {
     match &self.arguments {
       PathArguments::AngleBracketed(args) => {
-        if args.args.len() > 1 {
-          Some((args.args.first().unwrap(), args.args.get(1).unwrap()))
+        if let Some(first) = args.args.first()
+          && let Some(second) = args.args.get(1)
+        {
+          Some((first, second))
         } else {
           None
         }

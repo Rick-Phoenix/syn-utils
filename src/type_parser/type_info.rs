@@ -61,11 +61,10 @@ impl TypeInfo {
     self.type_.as_path()
   }
 
-  #[inline]
   pub fn require_path(&self) -> syn::Result<Path> {
     self
       .as_path()
-      .ok_or(error!(self, "Expected a type path"))
+      .ok_or_else(|| error!(self, "Expected a type path"))
   }
 
   #[must_use]
@@ -153,7 +152,10 @@ impl TypeInfo {
         }
       }
       Type::Path(path) => {
-        let last_segment = path.path.last_segment();
+        let last_segment = path
+          .path
+          .last_segment()
+          .expect("Tried to access last segment of empty path");
 
         let last_segment_ident = last_segment.ident.to_string();
 
