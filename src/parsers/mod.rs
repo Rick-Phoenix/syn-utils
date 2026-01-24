@@ -1,3 +1,6 @@
+use core::slice;
+use std::vec;
+
 use syn::{RangeLimits, token::Comma};
 
 use crate::*;
@@ -286,6 +289,57 @@ impl ToTokens for ClosureOrExpr {
 
 pub struct PunctuatedItems<T: Parse + ToTokens> {
   pub list: Vec<T>,
+}
+
+impl<T: Parse + ToTokens> DerefMut for PunctuatedItems<T> {
+  fn deref_mut(&mut self) -> &mut Self::Target {
+    &mut self.list
+  }
+}
+
+impl<T: Parse + ToTokens> Deref for PunctuatedItems<T> {
+  type Target = [T];
+
+  fn deref(&self) -> &Self::Target {
+    &self.list
+  }
+}
+
+impl<T: Parse + ToTokens> PunctuatedItems<T> {
+  pub fn iter(&self) -> slice::Iter<'_, T> {
+    self.into_iter()
+  }
+
+  pub fn iter_mut(&mut self) -> slice::IterMut<'_, T> {
+    self.into_iter()
+  }
+}
+
+impl<T: Parse + ToTokens> IntoIterator for PunctuatedItems<T> {
+  type IntoIter = vec::IntoIter<T>;
+  type Item = T;
+
+  fn into_iter(self) -> Self::IntoIter {
+    self.list.into_iter()
+  }
+}
+
+impl<'a, T: Parse + ToTokens> IntoIterator for &'a PunctuatedItems<T> {
+  type IntoIter = slice::Iter<'a, T>;
+  type Item = &'a T;
+
+  fn into_iter(self) -> Self::IntoIter {
+    self.list.iter()
+  }
+}
+
+impl<'a, T: Parse + ToTokens> IntoIterator for &'a mut PunctuatedItems<T> {
+  type IntoIter = slice::IterMut<'a, T>;
+  type Item = &'a mut T;
+
+  fn into_iter(self) -> Self::IntoIter {
+    self.list.iter_mut()
+  }
 }
 
 pub type PathList = PunctuatedItems<Path>;

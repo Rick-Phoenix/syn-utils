@@ -1,7 +1,7 @@
 #[macro_use]
 mod macros;
 
-use std::ops::Deref;
+use std::ops::{Deref, DerefMut};
 mod struct_or_enum;
 pub use struct_or_enum::*;
 mod field_or_variant;
