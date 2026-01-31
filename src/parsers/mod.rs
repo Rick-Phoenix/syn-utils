@@ -5,6 +5,18 @@ use syn::{RangeLimits, token::Comma};
 
 use crate::*;
 
+pub fn parse_bracketed<T: Parse>(input: ParseStream) -> syn::Result<T> {
+  let content;
+  syn::bracketed!(content in input);
+  content.parse::<T>()
+}
+
+pub fn parse_braced<T: Parse>(input: ParseStream) -> syn::Result<T> {
+  let content;
+  syn::braced!(content in input);
+  content.parse::<T>()
+}
+
 #[derive(Debug, Clone)]
 pub struct ParsedStr {
   pub str: String,
@@ -289,6 +301,13 @@ impl ToTokens for ClosureOrExpr {
 
 pub struct PunctuatedItems<T: Parse + ToTokens> {
   pub list: Vec<T>,
+}
+
+impl<T: Parse + ToTokens> Default for PunctuatedItems<T> {
+  #[inline]
+  fn default() -> Self {
+    Self { list: vec![] }
+  }
 }
 
 impl<T: Parse + ToTokens> DerefMut for PunctuatedItems<T> {
