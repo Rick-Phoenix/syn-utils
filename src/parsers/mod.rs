@@ -58,6 +58,13 @@ impl Deref for ParsedStr {
   }
 }
 
+impl DerefMut for ParsedStr {
+  #[inline]
+  fn deref_mut(&mut self) -> &mut Self::Target {
+    &mut self.str
+  }
+}
+
 impl Parse for ParsedStr {
   fn parse(input: ParseStream) -> syn::Result<Self> {
     let lit: LitStr = input.parse()?;
@@ -120,6 +127,13 @@ impl Deref for ParsedNum {
   }
 }
 
+impl DerefMut for ParsedNum {
+  #[inline]
+  fn deref_mut(&mut self) -> &mut Self::Target {
+    &mut self.num
+  }
+}
+
 impl Parse for ParsedNum {
   fn parse(input: ParseStream) -> syn::Result<Self> {
     let lit: LitInt = input.parse()?;
@@ -144,6 +158,22 @@ impl ToTokens for ParsedNum {
 #[derive(Debug, Clone)]
 pub struct ClosedRangeList {
   pub list: Vec<Range<i32>>,
+}
+
+impl Deref for ClosedRangeList {
+  type Target = [Range<i32>];
+
+  #[inline]
+  fn deref(&self) -> &Self::Target {
+    &self.list
+  }
+}
+
+impl DerefMut for ClosedRangeList {
+  #[inline]
+  fn deref_mut(&mut self) -> &mut Self::Target {
+    &mut self.list
+  }
 }
 
 impl Parse for ClosedRangeList {
@@ -206,6 +236,22 @@ pub enum GenericRange {
 #[derive(Debug, Clone)]
 pub struct GenericRangeList {
   pub list: Vec<GenericRange>,
+}
+
+impl Deref for GenericRangeList {
+  type Target = [GenericRange];
+
+  #[inline]
+  fn deref(&self) -> &Self::Target {
+    &self.list
+  }
+}
+
+impl DerefMut for GenericRangeList {
+  #[inline]
+  fn deref_mut(&mut self) -> &mut Self::Target {
+    &mut self.list
+  }
 }
 
 impl Parse for GenericRangeList {
@@ -402,6 +448,22 @@ pub struct StringList {
   pub list: Vec<String>,
 }
 
+impl Deref for StringList {
+  type Target = [String];
+
+  #[inline]
+  fn deref(&self) -> &Self::Target {
+    &self.list
+  }
+}
+
+impl DerefMut for StringList {
+  #[inline]
+  fn deref_mut(&mut self) -> &mut Self::Target {
+    &mut self.list
+  }
+}
+
 impl ToTokens for StringList {
   fn to_tokens(&self, tokens: &mut TokenStream2) {
     let list = &self.list;
@@ -431,6 +493,22 @@ impl Parse for StringList {
 
 pub struct NumList {
   pub list: Vec<i32>,
+}
+
+impl Deref for NumList {
+  type Target = [i32];
+
+  #[inline]
+  fn deref(&self) -> &Self::Target {
+    &self.list
+  }
+}
+
+impl DerefMut for NumList {
+  #[inline]
+  fn deref_mut(&mut self) -> &mut Self::Target {
+    &mut self.list
+  }
 }
 
 impl ToTokens for NumList {
