@@ -32,7 +32,7 @@ impl ExprExt for Expr {
   fn as_path_or_closure(&self) -> syn::Result<PathOrClosure> {
     match self {
       Self::Closure(closure) => Ok(PathOrClosure::Closure(closure.to_token_stream())),
-      Self::Path(expr_path) => Ok(PathOrClosure::Path(expr_path.path.to_token_stream())),
+      Self::Path(expr_path) => Ok(PathOrClosure::Path(expr_path.path.clone())),
       _ => Err(error!(self, "Expected a path or a closure")),
     }
   }

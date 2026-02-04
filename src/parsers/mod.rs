@@ -304,8 +304,20 @@ impl Parse for GenericRangeList {
 
 #[derive(Debug, Clone)]
 pub enum PathOrClosure {
-  Path(TokenStream2),
+  Path(Path),
   Closure(TokenStream2),
+}
+
+impl Parse for PathOrClosure {
+  fn parse(input: ParseStream) -> syn::Result<Self> {
+    let expr: Expr = input.parse()?;
+
+    match expr {
+      Expr::Path(expr_path) => Ok(Self::Path(expr_path.path)),
+      Expr::Closure(closure) => Ok(Self::Closure(closure.into_token_stream())),
+      _ => Err(input.error("Expected a path or closure")),
+    }
+  }
 }
 
 impl ToTokens for PathOrClosure {
